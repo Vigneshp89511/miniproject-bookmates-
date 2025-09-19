@@ -1,12 +1,10 @@
 import React from "react";
-import { Link } from "react-router-dom";
 
 const Home = () => {
   return (
     <div>
-      <h1>📚 Welcome to Book Mates</h1>
-      <p>Exchange books with friends easily.</p>
-      <Link to="/signin">Sign In</Link> | <Link to="/signup">Sign Up</Link>
+      <h1 className="text-center bg-orange-300 ">📚 Welcome to Book Mates</h1>
+      <p className="text-center">Exchange books with friends easily.</p>
     </div>
   );
 };
