@@ -136,7 +136,7 @@ export default function Home() {
           
           <nav className="hidden md:flex space-x-8">
             <a href="#features" className="text-gray-700 hover:text-amber-600 font-medium transition-colors duration-200">Features</a>
-            <a href="#community" className="text-gray-700 hover:text-amber-600 font-medium transition-colors duration-200">Community</a>
+            <a href="#testimonials" className="text-gray-700 hover:text-amber-600 font-medium transition-colors duration-200">Community</a>
             <a href="#how-it-works" className="text-gray-700 hover:text-amber-600 font-medium transition-colors duration-200">How It Works</a>
             <a href="#testimonials" className="text-gray-700 hover:text-amber-600 font-medium transition-colors duration-200">Reviews</a>
           </nav>
