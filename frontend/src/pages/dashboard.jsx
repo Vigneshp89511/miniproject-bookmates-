@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { BookOpen, Search, Star, Clock, TrendingUp, BookMarked, User, Settings } from 'lucide-react';
+import { BookOpen, Search, Star, Clock, TrendingUp, BookMarked, User, Settings, Plus, Edit2 } from 'lucide-react';
 
 export default function BookReaderDashboard() {
   const [activeTab, setActiveTab] = useState('library');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBook, setSelectedBook] = useState(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [updateBookId, setUpdateBookId] = useState(null);
+  const [newPageNumber, setNewPageNumber] = useState('');
 
-  const books = [
+  const [books, setBooks] = useState([
     {
       id: 1,
       title: 'The Midnight Library',
@@ -79,7 +82,7 @@ export default function BookReaderDashboard() {
       genre: 'History',
       lastRead: '6 hours ago'
     }
-  ];
+  ]);
 
   const stats = {
     booksRead: 24,
@@ -101,6 +104,41 @@ export default function BookReaderDashboard() {
         className={i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
       />
     ));
+  };
+
+  const handleOpenUpdateModal = (bookId) => {
+    const book = books.find(b => b.id === bookId);
+    setUpdateBookId(bookId);
+    setNewPageNumber(book.currentPage.toString());
+    setShowUpdateModal(true);
+  };
+
+  const handleUpdateProgress = () => {
+    const pageNum = parseInt(newPageNumber);
+    const book = books.find(b => b.id === updateBookId);
+    
+    if (isNaN(pageNum) || pageNum < 0 || pageNum > book.pages) {
+      alert(`Please enter a valid page number between 0 and ${book.pages}`);
+      return;
+    }
+
+    const updatedBooks = books.map(b => {
+      if (b.id === updateBookId) {
+        const progress = Math.round((pageNum / b.pages) * 100);
+        return {
+          ...b,
+          currentPage: pageNum,
+          progress: progress,
+          lastRead: 'Just now'
+        };
+      }
+      return b;
+    });
+
+    setBooks(updatedBooks);
+    setShowUpdateModal(false);
+    setNewPageNumber('');
+    setUpdateBookId(null);
   };
 
   return (
@@ -250,17 +288,31 @@ export default function BookReaderDashboard() {
                   </div>
                 </div>
                 <div className="px-4 pb-4">
-                  <div className="flex justify-between text-sm text-gray-600 mb-2">
-                    <span>{book.currentPage} / {book.pages} pages</span>
-                    <span>{book.progress}%</span>
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex-1">
+                      <div className="flex justify-between text-sm text-gray-600 mb-2">
+                        <span>{book.currentPage} / {book.pages} pages</span>
+                        <span>{book.progress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all"
+                          style={{ width: `${book.progress}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-2">Last read: {book.lastRead}</p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenUpdateModal(book.id);
+                      }}
+                      className="ml-3 p-2 bg-indigo-100 hover:bg-indigo-200 rounded-lg transition"
+                      title="Update reading progress"
+                    >
+                      <Edit2 size={18} className="text-indigo-600" />
+                    </button>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all"
-                      style={{ width: `${book.progress}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-2">Last read: {book.lastRead}</p>
                 </div>
               </div>
             ))}
@@ -314,12 +366,94 @@ export default function BookReaderDashboard() {
                 ></div>
               </div>
             </div>
-            <button
-              onClick={() => setSelectedBook(null)}
-              className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold py-3 rounded-lg hover:from-indigo-600 hover:to-purple-600 transition"
-            >
-              Continue Reading
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setSelectedBook(null);
+                  handleOpenUpdateModal(selectedBook.id);
+                }}
+                className="flex-1 bg-white border-2 border-indigo-500 text-indigo-600 font-semibold py-3 rounded-lg hover:bg-indigo-50 transition"
+              >
+                Update Progress
+              </button>
+              <button
+                onClick={() => setSelectedBook(null)}
+                className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold py-3 rounded-lg hover:from-indigo-600 hover:to-purple-600 transition"
+              >
+                Continue Reading
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Update Progress Modal */}
+      {showUpdateModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          onClick={() => {
+            setShowUpdateModal(false);
+            setNewPageNumber('');
+            setUpdateBookId(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center mb-4">
+              <BookOpen className="text-indigo-600 mr-3" size={28} />
+              <h2 className="text-2xl font-bold text-gray-900">Update Reading Progress</h2>
+            </div>
+            
+            {updateBookId && (
+              <div className="mb-6">
+                <p className="text-gray-600 mb-2">
+                  <span className="font-semibold">{books.find(b => b.id === updateBookId)?.title}</span>
+                </p>
+                <p className="text-sm text-gray-500">
+                  Total pages: {books.find(b => b.id === updateBookId)?.pages}
+                </p>
+              </div>
+            )}
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Current Page Number
+              </label>
+              <input
+                type="number"
+                min="0"
+                max={books.find(b => b.id === updateBookId)?.pages}
+                value={newPageNumber}
+                onChange={(e) => setNewPageNumber(e.target.value)}
+                placeholder="Enter page number"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
+                autoFocus
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                Enter the page you're currently on in your physical book
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowUpdateModal(false);
+                  setNewPageNumber('');
+                  setUpdateBookId(null);
+                }}
+                className="flex-1 bg-gray-200 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-300 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateProgress}
+                className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold py-3 rounded-lg hover:from-indigo-600 hover:to-purple-600 transition"
+              >
+                Update
+              </button>
+            </div>
           </div>
         </div>
       )}
