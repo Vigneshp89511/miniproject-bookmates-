@@ -5,6 +5,7 @@ import {
   TrendingUp, Shield, Clock, Globe, CheckCircle,
   Play, ChevronRight, Quote, Zap
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -141,10 +142,10 @@ export default function Home() {
           </nav>
           
           <div className="hidden md:flex items-center space-x-4">
-            <button className="text-gray-700 hover:text-amber-600 font-medium transition-colors duration-200">Sign In</button>
-            <button className="bg-amber-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-amber-700 transition-all duration-200 transform hover:scale-105">
+            <Link to="/auth" className="text-gray-700 hover:text-amber-600 font-medium transition-colors duration-200">Sign In</Link>
+            <Link to="/auth" className="bg-amber-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-amber-700 transition-all duration-200 transform hover:scale-105">
               Join Now
-            </button>
+            </Link>
           </div>
           
           <button 
@@ -430,10 +431,10 @@ export default function Home() {
         </p>
         
         <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
-          <button className="bg-white text-amber-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center">
-            <Zap className="mr-2 h-5 w-5" />
-            Get Started Free
-          </button>
+          <Link to="/auth"className="bg-white text-amber-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center">
+          <Zap className="mr-2 h-5 w-5" />
+            Get Started
+          </Link>
           <button className="border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-amber-600 transition-all duration-300">
             Learn More
           </button>
