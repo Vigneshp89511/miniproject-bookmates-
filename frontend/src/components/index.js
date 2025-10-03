@@ -1,5 +1,4 @@
 import CTA from "./CTA";
-import FeaturedBooks from "./FeaturedBooks";
 import Footer from "./Footer";
 import Features from "./Features";
 import Header from "./Header";
@@ -8,7 +7,6 @@ import HowItWorks from "./HowItWorks";
 import Testimonials from "./Testimonials";
 export {
   CTA,
-  FeaturedBooks,
   Features,
   Footer,
   Header,
