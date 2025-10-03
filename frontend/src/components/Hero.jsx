@@ -34,10 +34,6 @@ const Hero = () => {
               Start Exchanging
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
-            <button className="border-2 border-green-600 text-green-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-green-600 hover:text-white transition-all duration-300 flex items-center">
-              <Play className="mr-2 h-5 w-5" />
-              Watch Demo
-            </button>
           </div>
 
           {/* Stats */}
