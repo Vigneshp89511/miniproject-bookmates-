@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Zap, CheckCircle } from "lucide-react";
+import { Zap, CheckCircle, X } from "lucide-react";
+import Video from "../assets/Bookmates.mp4";
 
 const CTA = () => {
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+
   return (
     <section className="py-20 bg-gradient-to-r from-blue-600 to-green-600">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -13,6 +17,7 @@ const CTA = () => {
           story today
         </p>
 
+        {/* Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
           <Link
             to="/auth"
@@ -21,11 +26,16 @@ const CTA = () => {
             <Zap className="mr-2 h-5 w-5" />
             Get Started
           </Link>
-          <button className="border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-green-600 transition-all duration-300">
+
+          <button
+            onClick={() => setIsVideoOpen(true)}
+            className="border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-green-600 transition-all duration-300"
+          >
             Learn More
           </button>
         </div>
 
+        {/* Features */}
         <div className="mt-8 flex items-center justify-center space-x-6 text-green-100">
           <div className="flex items-center">
             <CheckCircle className="h-5 w-5 mr-2" />
@@ -41,6 +51,33 @@ const CTA = () => {
           </div>
         </div>
       </div>
+
+      {/* Video Modal */}
+      {isVideoOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="relative w-full max-w-3xl p-4">
+            {/* Close button */}
+            <button
+              onClick={() => setIsVideoOpen(false)}
+              className="absolute top-2 right-2 text-white hover:text-gray-300"
+            >
+              <X size={30} />
+            </button>
+
+            {/* Video iframe */}
+            <div className="aspect-w-16 aspect-h-9">
+              <iframe
+                className="w-full h-[500px] rounded-xl shadow-lg"
+                src={Video} // replace with your video URL
+                title="Learn More Video"
+                frameBorder="0"
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
