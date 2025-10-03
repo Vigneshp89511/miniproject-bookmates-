@@ -1,6 +1,5 @@
 import {
   CTA,
-  FeaturedBooks,
   Features,
   Footer,
   Header,
@@ -14,7 +13,6 @@ export default function Home() {
     <div className="min-h-screen">
       <Header />
       <Hero />
-      <FeaturedBooks />
       <Features />
       <HowItWorks />
       <Testimonials />
