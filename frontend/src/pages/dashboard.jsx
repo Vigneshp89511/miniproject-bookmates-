@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { getReaderProfile, searchReaderBooks, logout, getToken } from "../lib/api";
 import { 
   BookOpen, Search, Heart, User, Bell, Menu, X, 
   Filter, Star, MapPin, MessageCircle, Share2, 
@@ -11,55 +12,52 @@ export default function BookReaderDashboard() {
   const [activeTab, setActiveTab] = useState('home');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterGenre, setFilterGenre] = useState('all');
+  const [profile, setProfile] = useState(null);
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        setLoading(true);
+        const token = getToken();
+        if (!token) {
+          window.location.href = '/auth';
+          return;
+        }
+        const p = await getReaderProfile();
+        setProfile(p);
+        const list = await searchReaderBooks('');
+        setBooks(list);
+      } catch (err) {
+        setError(err.message || 'Failed to load');
+        if (String(err.message || '').toLowerCase().includes('unauthorized')) {
+          window.location.href = '/auth';
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    init();
+  }, []);
 
   // Sample data
-  const featuredBooks = [
-    {
-      id: 1,
-      title: "The Midnight Library",
-      author: "Matt Haig",
-      genre: "Fiction",
-      rating: 4.8,
-      reviews: 245,
-      location: "2.3 km away",
-      owner: "Sarah Chen",
-      ownerRating: 4.9,
-      condition: "Like New",
-      exchangeType: "Exchange",
-      image: "/api/placeholder/300/400",
-      description: "Between life and death there is a library..."
-    },
-    {
-      id: 2,
-      title: "Atomic Habits",
-      author: "James Clear",
-      genre: "Self-Help",
-      rating: 4.9,
-      reviews: 389,
-      location: "1.8 km away",
-      owner: "Mike Johnson",
-      ownerRating: 4.7,
-      condition: "Good",
-      exchangeType: "Donate",
-      image: "/api/placeholder/300/400",
-      description: "Transform your life with tiny changes..."
-    },
-    {
-      id: 3,
-      title: "Project Hail Mary",
-      author: "Andy Weir",
-      genre: "Sci-Fi",
-      rating: 4.7,
-      reviews: 156,
-      location: "3.1 km away",
-      owner: "Emma Wilson",
-      ownerRating: 5.0,
-      condition: "Very Good",
-      exchangeType: "Sell",
-      image: "/api/placeholder/300/400",
-      description: "A lone astronaut must save humanity..."
-    }
-  ];
+  const featuredBooks = books.map((b, idx) => ({
+    id: b._id || idx,
+    title: b.title,
+    author: b.author,
+    genre: b.genre,
+    rating: 4.8,
+    reviews: 0,
+    location: "",
+    owner: "",
+    ownerRating: 0,
+    condition: "",
+    exchangeType: b.available ? 'Exchange' : 'Unavailable',
+    image: "/api/placeholder/300/400",
+    description: b.description || "",
+  }));
 
   const myBooks = [
     {
@@ -88,7 +86,49 @@ export default function BookReaderDashboard() {
     { type: "review", message: "You received a 5-star review from Emma", time: "1 day ago" }
   ];
 
-  const genres = ["All", "Fiction", "Non-Fiction", "Mystery", "Romance", "Sci-Fi", "Fantasy", "Biography", "History", "Self-Help"];
+  const genres = [
+  "All",
+  // Literature & Fiction
+  "Fiction",
+  "Non-Fiction",
+  "Mystery & Thriller",
+  "Romance",
+  "Science Fiction",
+  "Fantasy",
+  "Biography",
+  "History",
+  // Self-Improvement
+  "Self-Help",
+  // Engineering & Technology
+  "Engineering & Technology",
+  "Mechanical & Robotics",
+  "Electrical & Electronics",
+  "Civil Engineering",
+  // Computer Science & Data
+  "Programming & Coding",
+  "AI & Machine Learning",
+  "Data Science & Analytics",
+  "Mathematics & Logic"
+];
+
+
+  useEffect(() => {
+  const run = async () => {
+    if (activeTab !== 'browse') return;
+
+    try {
+      const list = await searchReaderBooks(searchQuery);
+      setBooks(list);
+      setError(null); // Clear any previous errors
+    } catch (err) {
+      setError(err.message || 'Search failed');
+      setBooks([]); // Optionally clear books on error
+    }
+  };
+
+  run();
+}, [activeTab, searchQuery]); // added searchQuery as dependency
+
 
   const Sidebar = () => (
     <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:relative lg:flex lg:flex-col`}>
@@ -131,7 +171,7 @@ export default function BookReaderDashboard() {
               <Settings className="h-5 w-5" />
               <span className="font-medium">Settings</span>
             </button>
-            <button className="w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200">
+            <button onClick={() => { logout(); window.location.href = '/auth'; }} className="w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200">
               <LogOut className="h-5 w-5" />
               <span className="font-medium">Logout</span>
             </button>
@@ -169,7 +209,18 @@ export default function BookReaderDashboard() {
                 type="text"
                 placeholder="Search books..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={async (e) => {
+                  const q = e.target.value;
+                  setSearchQuery(q);
+                  try {
+                    if (activeTab === 'browse') {
+                      const list = await searchReaderBooks(q);
+                      setBooks(list);
+                    }
+                  } catch (err) {
+                    setError(err.message || 'Search failed');
+                  }
+                }}
                 className="pl-10 pr-4 py-2 w-64 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
               />
             </div>
@@ -259,7 +310,7 @@ export default function BookReaderDashboard() {
     </div>
   );
 
-  const StatsCard = ({  title, value, subtitle, color }) => (
+  const StatsCard = ({ title, value, subtitle, color }) => (
     <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
       <div className="flex items-center">
         <div className={`p-2 rounded-lg ${color}`}>
@@ -283,8 +334,8 @@ export default function BookReaderDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatsCard 
                 icon={BookOpen} 
-                title="Books Read" 
-                value="47" 
+                title="Favorite Genre" 
+                value={profile?.favoriteGenre || '-'} 
                 subtitle="This year"
                 color="bg-blue-500"
               />
@@ -487,6 +538,12 @@ export default function BookReaderDashboard() {
         <Header />
         
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+          {loading && (
+            <div className="text-gray-600 mb-4">Loading...</div>
+          )}
+          {error && (
+            <div className="text-red-600 mb-4">{error}</div>
+          )}
           {renderContent()}
         </main>
       </div>
