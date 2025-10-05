@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { signup, login, setToken, setUser } from "../lib/api";
 import {
   BookOpen,
   Users,
@@ -13,12 +14,65 @@ import {
 export default function BookExchangeAuth() {
   const [isSignIn, setIsSignIn] = useState(true);
   const [userType, setUserType] = useState("reader"); // 'reader' or 'contributor'
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    favoriteGenre: "",
+    accountType: "reader",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log("Form submitted for:", userType);
+    setError("");
+    setLoading(true);
+    try {
+      if (isSignIn) {
+        const { email, password } = form;
+        const resp = await login({ email, password });
+        setToken(resp.token);
+        setUser(resp.user);
+        const type = resp?.user?.accountType;
+        if (type === 'reader') window.location.href = '/dashboard';
+        else if (type === 'contributor') window.location.href = '/book-contributor';
+        else window.location.href = '/choose-dashboard';
+      } else {
+        if (!form.password || form.password.length < 6) {
+          setError("Password must be at least 6 characters");
+          setLoading(false);
+          return;
+        }
+        if (form.password !== form.confirmPassword) {
+          setError("Passwords do not match");
+          setLoading(false);
+          return;
+        }
+        const payload = {
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          accountType: form.accountType,
+          favoriteGenre: form.favoriteGenre,
+        };
+        const resp = await signup(payload);
+        setToken(resp.token);
+        setUser(resp.user);
+        const type = resp?.user?.accountType;
+        if (type === 'reader') window.location.href = '/dashboard';
+        else if (type === 'contributor') window.location.href = '/book-contributor';
+        else window.location.href = '/choose-dashboard';
+      }
+    } catch (err) {
+      setError(err.message || "Request failed");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const updateField = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 flex items-center justify-center p-2 sm:p-4 lg:p-6">
@@ -79,35 +133,32 @@ export default function BookExchangeAuth() {
                   type="email"
                   placeholder="Email Address"
                   required
+                  value={form.email}
+                  onChange={updateField("email")}
                   className="px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base"
                 />
                 <input
                   type="password"
                   placeholder="Password"
                   required
+                  value={form.password}
+                  onChange={updateField("password")}
                   className="px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base"
                 />
 
-                {userType === "contributor" && (
-                  <select className="px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-600 text-sm sm:text-base">
-                    <option value="">Select Contribution Type</option>
-                    <option value="exchange">Book Exchange</option>
-                    <option value="donate">Book Donation</option>
-                    <option value="sell">Book Selling</option>
-                    <option value="all">All Types</option>
-                  </select>
-                )}
+               
 
                 <div className="text-right text-xs sm:text-sm text-blue-600 cursor-pointer hover:underline font-medium">
                   Forgot Your Password?
                 </div>
+                {error && (
+                  <div className="text-red-600 text-sm">{error}</div>
+                )}
                 <button
                   onClick={handleSubmit}
                   className="bg-gradient-to-r from-blue-600 to-green-600 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base"
                 >
-                  {userType === "reader"
-                    ? "START READING JOURNEY"
-                    : "JOIN AS CONTRIBUTOR"}
+                  {loading ? "Loading..." : userType === "reader" ? "START READING JOURNEY" : "JOIN AS CONTRIBUTOR"}
                 </button>
               </div>
 
@@ -214,12 +265,16 @@ export default function BookExchangeAuth() {
                   type="text"
                   placeholder="Full Name"
                   required
+                  value={form.name}
+                  onChange={updateField("name")}
                   className="px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base"
                 />
                 <input
                   type="email"
                   placeholder="Email Address"
                   required
+                  value={form.email}
+                  onChange={updateField("email")}
                   className="px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base"
                 />
                 <input
@@ -236,6 +291,8 @@ export default function BookExchangeAuth() {
                 />
                 <select
                   required
+                  value={form.favoriteGenre}
+                  onChange={updateField("favoriteGenre")}
                   className="px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-600 text-sm sm:text-base"
                 >
                   <option value="">Favorite Genre</option>
@@ -259,6 +316,8 @@ export default function BookExchangeAuth() {
                 </select>
                 <select
                   required
+                  value={form.accountType}
+                  onChange={updateField("accountType")}
                   className="px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-600 text-sm sm:text-base"
                 >
                   <option value="">Account Type</option>
@@ -270,12 +329,16 @@ export default function BookExchangeAuth() {
                   type="password"
                   placeholder="Create Password"
                   required
+                  value={form.password}
+                  onChange={updateField("password")}
                   className="px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base"
                 />
                 <input
                   type="password"
                   placeholder="Confirm Password"
                   required
+                  value={form.confirmPassword}
+                  onChange={updateField("confirmPassword")}
                   className="px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base"
                 />
 
@@ -290,11 +353,14 @@ export default function BookExchangeAuth() {
                   </label>
                 </div>
 
+                {error && (
+                  <div className="text-red-600 text-sm">{error}</div>
+                )}
                 <button
                   onClick={handleSubmit}
                   className="bg-gradient-to-r from-blue-600 to-green-600 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base"
                 >
-                  JOIN BOOK COMMUNITY
+                  {loading ? "Creating..." : "JOIN BOOK COMMUNITY"}
                 </button>
               </div>
             </>
