@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { getToken, getUser, logout } from "../lib/api";
+import { listMyBooks, createMyBook, deleteMyBook, getContributorAnalytics, getContributorRequests } from "../lib/api";
 import { 
   BookOpen, Search, Heart, User, Bell, Menu, X, 
   Plus, Star, MapPin, MessageCircle, Share2, 
@@ -13,110 +15,56 @@ export default function BookContributorDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showAddBookModal, setShowAddBookModal] = useState(false);
   const [exchangeType, setExchangeType] = useState('');
+  const [user, setUser] = useState(null);
+  const [myBooks, setMyBooks] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [analytics, setAnalytics] = useState({ totalListings: 0, activeListings: 0, completedExchanges: 0, totalViews: 0, totalRequests: 0, averageRating: 0, earnings: 0 });
+  const [recentRequests, setRecentRequests] = useState([]);
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      window.location.href = '/auth';
+      return;
+    }
+    setUser(getUser());
+    (async () => {
+      try {
+        setLoading(true);
+        const [books, stats, requests] = await Promise.all([
+          listMyBooks(),
+          getContributorAnalytics(),
+          getContributorRequests(),
+        ]);
+        setMyBooks(books);
+        setAnalytics(stats);
+        setRecentRequests(requests);
+      } catch (err) {
+        setError(err.message || 'Failed to load books');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   // Sample data
-  const myListings = [
-    {
-      id: 1,
-      title: "The Seven Husbands of Evelyn Hugo",
-      author: "Taylor Jenkins Reid",
-      genre: "Fiction",
-      condition: "Like New",
-      exchangeType: "Exchange",
-      price: null,
-      status: "Active",
-      views: 245,
-      requests: 8,
-      favorites: 12,
-      dateAdded: "2024-01-15",
-      image: "/api/placeholder/150/200"
-    },
-    {
-      id: 2,
-      title: "Educated",
-      author: "Tara Westover",
-      genre: "Biography",
-      condition: "Good",
-      exchangeType: "Donate",
-      price: null,
-      status: "Active",
-      views: 189,
-      requests: 5,
-      favorites: 8,
-      dateAdded: "2024-01-20",
-      image: "/api/placeholder/150/200"
-    },
-    {
-      id: 3,
-      title: "Atomic Habits",
-      author: "James Clear",
-      genre: "Self-Help",
-      condition: "Very Good",
-      exchangeType: "Sell",
-      price: 12.99,
-      status: "Pending",
-      views: 156,
-      requests: 3,
-      favorites: 6,
-      dateAdded: "2024-02-01",
-      image: "/api/placeholder/150/200"
-    },
-    {
-      id: 4,
-      title: "Project Hail Mary",
-      author: "Andy Weir",
-      genre: "Sci-Fi",
-      condition: "Like New",
-      exchangeType: "Exchange",
-      price: null,
-      status: "Completed",
-      views: 312,
-      requests: 12,
-      favorites: 18,
-      dateAdded: "2023-12-10",
-      image: "/api/placeholder/150/200"
-    }
-  ];
+  const myListings = myBooks.map((b) => ({
+    id: b._id,
+    title: b.title,
+    author: b.author,
+    genre: b.genre,
+    condition: "",
+    exchangeType: b.available ? 'Exchange' : 'Unavailable',
+    price: null,
+    status: b.available ? 'Active' : 'Inactive',
+    views: 0,
+    requests: 0,
+    favorites: 0,
+    dateAdded: (b.createdAt ? new Date(b.createdAt) : new Date()).toISOString().slice(0,10),
+    image: "/api/placeholder/150/200"
+  }));
 
-  const recentRequests = [
-    {
-      id: 1,
-      bookTitle: "The Seven Husbands of Evelyn Hugo",
-      requester: "Sarah Chen",
-      requesterRating: 4.9,
-      message: "I've been looking for this book! Would love to exchange...",
-      time: "2 hours ago",
-      status: "pending"
-    },
-    {
-      id: 2,
-      bookTitle: "Educated",
-      requester: "Mike Johnson",
-      requesterRating: 4.7,
-      message: "Thanks for offering this for donation!",
-      time: "5 hours ago",
-      status: "pending"
-    },
-    {
-      id: 3,
-      bookTitle: "Atomic Habits",
-      requester: "Emma Wilson",
-      requesterRating: 5.0,
-      message: "Is this still available? Happy to pay asking price.",
-      time: "1 day ago",
-      status: "accepted"
-    }
-  ];
-
-  const analytics = {
-    totalListings: 12,
-    activeListings: 8,
-    completedExchanges: 24,
-    totalViews: 3456,
-    totalRequests: 67,
-    averageRating: 4.8,
-    earnings: 156.50
-  };
 
   const Sidebar = () => (
     <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:relative lg:flex lg:flex-col`}>
@@ -136,8 +84,8 @@ export default function BookContributorDashboard() {
             <User className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h3 className="font-bold text-gray-900">John Doe</h3>
-            <p className="text-sm text-gray-600">Contributor</p>
+            <h3 className="font-bold text-gray-900">{user?.name || 'Contributor'}</h3>
+            <p className="text-sm text-gray-600">{user?.accountType ? user.accountType[0].toUpperCase() + user.accountType.slice(1) : 'Contributor'}</p>
             <div className="flex items-center mt-1">
               <Star className="h-3 w-3 text-yellow-400 fill-current" />
               <span className="text-xs text-gray-600 ml-1">{analytics.averageRating} Rating</span>
@@ -151,7 +99,7 @@ export default function BookContributorDashboard() {
           {[
             { id: 'dashboard', label: 'Dashboard', icon: Home },
             { id: 'listings', label: 'My Listings', icon: Library },
-            { id: 'requests', label: 'Requests', icon: MessageCircle, badge: 5 },
+            { id: 'requests', label: 'Requests', icon: MessageCircle, badge: recentRequests.length },
             { id: 'analytics', label: 'Analytics', icon: BarChart3 },
             { id: 'earnings', label: 'Earnings', icon: DollarSign },
             { id: 'profile', label: 'Profile', icon: User }
@@ -182,7 +130,7 @@ export default function BookContributorDashboard() {
               <Settings className="h-5 w-5" />
               <span className="font-medium">Settings</span>
             </button>
-            <button className="w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200">
+            <button onClick={() => { logout(); window.location.href = '/auth'; }} className="w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200">
               <LogOut className="h-5 w-5" />
               <span className="font-medium">Logout</span>
             </button>
@@ -238,7 +186,7 @@ export default function BookContributorDashboard() {
     </header>
   );
 
-  const StatsCard = ({ icon: Icon, title, value, subtitle, color, trend }) => (
+  const StatsCard = ({ title, value, subtitle, color, trend }) => (
     <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
       <div className="flex items-center justify-between mb-4">
         <div className={`p-3 rounded-lg ${color}`}>
@@ -374,10 +322,11 @@ export default function BookContributorDashboard() {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Book Title *</label>
                 <input
+                  id="add-title"
                   type="text"
                   placeholder="Enter book title"
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -387,6 +336,7 @@ export default function BookContributorDashboard() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Author *</label>
                 <input
+                  id="add-author"
                   type="text"
                   placeholder="Enter author name"
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -395,14 +345,25 @@ export default function BookContributorDashboard() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Genre *</label>
-                <select className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  <select id="add-genre" className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
                   <option value="">Select genre</option>
                   <option value="fiction">Fiction</option>
                   <option value="non-fiction">Non-Fiction</option>
-                  <option value="mystery">Mystery</option>
+                  <option value="mystery">Mystery & Thriller</option>
                   <option value="romance">Romance</option>
                   <option value="sci-fi">Science Fiction</option>
+                  <option value="fantasy">Fantasy</option>
                   <option value="biography">Biography</option>
+                  <option value="history">History</option>
+                  <option value="self-help">Self-Help</option>
+                  <option value="engineering">Engineering & Technology</option>
+                  <option value="programming">Programming & Coding</option>
+                  <option value="mechanical">Mechanical & Robotics</option>
+                  <option value="electrical">Electrical & Electronics</option>
+                  <option value="civil">Civil Engineering</option>
+                  <option value="mathematics">Mathematics & Logic</option>
+                  <option value="ai-ml">AI & Machine Learning</option>
+                  <option value="data-science">Data Science & Analytics</option>
                 </select>
               </div>
               
@@ -472,6 +433,7 @@ export default function BookContributorDashboard() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
               <textarea
+                id="add-description"
                 rows="4"
                 placeholder="Tell readers about the book's condition, why you're sharing it, etc."
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -492,8 +454,25 @@ export default function BookContributorDashboard() {
               >
                 Cancel
               </button>
-              <button className="flex-1 px-6 py-3 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors duration-200">
-                Add Book
+              <button onClick={async () => {
+                try {
+                  setLoading(true);
+                  setError('');
+                  const title = document.querySelector('#add-title')?.value || '';
+                  const author = document.querySelector('#add-author')?.value || '';
+                  const genre = document.querySelector('#add-genre')?.value || '';
+                  const description = document.querySelector('#add-description')?.value || '';
+                  const payload = { title, author, genre, description, available: true };
+                  const created = await createMyBook(payload);
+                  setMyBooks((list) => [created, ...list]);
+                  handleClose();
+                } catch (err) {
+                  setError(err.message || 'Failed to add book');
+                } finally {
+                  setLoading(false);
+                }
+              }} className="flex-1 px-6 py-3 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors duration-200">
+                {loading ? 'Saving...' : 'Add Book'}
               </button>
             </div>
           </div>
@@ -731,7 +710,14 @@ export default function BookContributorDashboard() {
                   <Share2 className="h-4 w-4 mr-1" />
                   Share
                 </button>
-                <button className="px-3 py-2 border border-red-300 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors duration-200">
+                <button onClick={async () => {
+                  try {
+                    await deleteMyBook(book.id);
+                    setMyBooks((list) => list.filter((b) => b._id !== book.id));
+                  } catch (err) {
+                    setError(err.message || 'Delete failed');
+                  }
+                }} className="px-3 py-2 border border-red-300 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors duration-200">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
