@@ -6,6 +6,7 @@ import {
   Clock, TrendingUp, Award, Users, Eye, Plus,
   ChevronRight, Settings, LogOut, Home, Library
 } from "lucide-react";
+import Logo from "../assets/LogoMakerCa-1759326904291.png";
 
 export default function BookReaderDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -134,8 +135,8 @@ export default function BookReaderDashboard() {
     <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:relative lg:flex lg:flex-col`}>
       <div className="flex items-center justify-between p-4 border-b border-gray-200 lg:flex-shrink-0">
         <div className="flex items-center space-x-2">
-          <BookOpen className="h-8 w-8 text-amber-600" />
-          <span className="text-xl font-bold text-gray-800">BookExchange</span>
+          <img src={Logo} className="h-20 w-15 text-green-600" />
+          <span className="text-2xl font-bold text-gray-900">BookMates</span>
         </div>
         <button onClick={() => setSidebarOpen(false)} className="lg:hidden">
           <X className="h-6 w-6 text-gray-500" />
@@ -156,7 +157,7 @@ export default function BookReaderDashboard() {
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                activeTab === item.id ? 'bg-amber-100 text-amber-700 border-r-2 border-amber-600' : 'text-gray-600 hover:bg-gray-100'
+                activeTab === item.id ? 'bg-green-100 text-green-700 border-r-2 border-green-600' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <item.icon className="h-5 w-5" />
@@ -221,7 +222,7 @@ export default function BookReaderDashboard() {
                     setError(err.message || 'Search failed');
                   }
                 }}
-                className="pl-10 pr-4 py-2 w-64 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="pl-10 pr-4 py-2 w-64 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>
             
@@ -230,8 +231,8 @@ export default function BookReaderDashboard() {
               <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
             </button>
             
-            <div className="h-8 w-8 bg-amber-100 rounded-full flex items-center justify-center">
-              <User className="h-5 w-5 text-amber-600" />
+            <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+              <User className="h-5 w-5 text-green-600" />
             </div>
           </div>
         </div>
@@ -283,8 +284,8 @@ export default function BookReaderDashboard() {
         
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
           <div className="flex items-center space-x-2">
-            <div className="h-6 w-6 bg-amber-100 rounded-full flex items-center justify-center">
-              <User className="h-3 w-3 text-amber-600" />
+            <div className="h-6 w-6 bg-green-100 rounded-full flex items-center justify-center">
+              <User className="h-3 w-3 text-green-600" />
             </div>
             <span className="text-sm text-gray-700">{book.owner}</span>
             <div className="flex items-center">
@@ -294,27 +295,27 @@ export default function BookReaderDashboard() {
           </div>
           
           <div className="flex items-center space-x-1">
-            <button className="p-1 text-gray-400 hover:text-amber-600 transition-colors duration-200">
+            <button className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200">
               <Share2 className="h-4 w-4" />
             </button>
-            <button className="p-1 text-gray-400 hover:text-amber-600 transition-colors duration-200">
+            <button className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200">
               <MessageCircle className="h-4 w-4" />
             </button>
           </div>
         </div>
         
-        <button className="w-full mt-3 bg-amber-600 text-white py-2 rounded-lg font-medium hover:bg-amber-700 transition-colors duration-200">
+        <button className="w-full mt-3 bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors duration-200">
           Request Book
         </button>
       </div>
     </div>
   );
 
-  const StatsCard = ({ title, value, subtitle, color }) => (
+  const StatsCard = ({ icon: IconComponent, title, value, subtitle, color }) => (
     <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
       <div className="flex items-center">
         <div className={`p-2 rounded-lg ${color}`}>
-          <Icon className="h-6 w-6 text-white" />
+          <IconComponent className="h-6 w-6 text-white" />
         </div>
         <div className="ml-4">
           <p className="text-sm font-medium text-gray-600">{title}</p>
@@ -366,7 +367,7 @@ export default function BookReaderDashboard() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100">
               <div className="p-6 border-b border-gray-100">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                  <Clock className="h-5 w-5 mr-2 text-amber-600" />
+                  <Clock className="h-5 w-5 mr-2 text-green-600" />
                   Recent Activity
                 </h2>
               </div>
@@ -393,12 +394,12 @@ export default function BookReaderDashboard() {
               <div className="p-6 border-b border-gray-100">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                    <TrendingUp className="h-5 w-5 mr-2 text-amber-600" />
+                    <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
                     Featured Books
                   </h2>
                   <button 
                     onClick={() => setActiveTab('browse')}
-                    className="flex items-center text-amber-600 hover:text-amber-700 font-medium text-sm transition-colors duration-200"
+                    className="flex items-center text-green-600 hover:text-green-700 font-medium text-sm transition-colors duration-200"
                   >
                     View All <ChevronRight className="h-4 w-4 ml-1" />
                   </button>
@@ -426,7 +427,7 @@ export default function BookReaderDashboard() {
                   <select 
                     value={filterGenre}
                     onChange={(e) => setFilterGenre(e.target.value)}
-                    className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
                   >
                     {genres.map(genre => (
                       <option key={genre} value={genre.toLowerCase()}>{genre}</option>
@@ -454,7 +455,7 @@ export default function BookReaderDashboard() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">My Books</h2>
-              <button className="bg-amber-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-amber-700 transition-colors duration-200">
+              <button className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-green-700 transition-colors duration-200">
                 <Plus className="h-4 w-4" />
                 <span>Add Book</span>
               </button>
@@ -492,7 +493,7 @@ export default function BookReaderDashboard() {
                         <td className="px-6 py-4 text-sm text-gray-900">{book.views}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-2">
-                            <button className="text-amber-600 hover:text-amber-700">
+                            <button className="text-green-600 hover:text-green-700">
                               <Eye className="h-4 w-4" />
                             </button>
                             <button className="text-blue-600 hover:text-blue-700">

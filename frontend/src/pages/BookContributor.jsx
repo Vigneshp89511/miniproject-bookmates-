@@ -9,6 +9,7 @@ import {
   Package, Edit, Trash2, Check, AlertCircle, BarChart3,
   Upload, Camera, Filter, Download, RefreshCw
 } from "lucide-react";
+import Logo from "../assets/LogoMakerCa-1759326904291.png";
 
 export default function BookContributorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -70,8 +71,8 @@ export default function BookContributorDashboard() {
     <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:relative lg:flex lg:flex-col`}>
       <div className="flex items-center justify-between p-4 border-b border-gray-200 lg:flex-shrink-0">
         <div className="flex items-center space-x-2">
-          <BookOpen className="h-8 w-8 text-amber-600" />
-          <span className="text-xl font-bold text-gray-800">BookExchange</span>
+          <img src={Logo} className="h-20 w-15 text-green-600" />
+          <span className="text-2xl font-bold text-gray-900">BookMates</span>
         </div>
         <button onClick={() => setSidebarOpen(false)} className="lg:hidden">
           <X className="h-6 w-6 text-gray-500" />
@@ -108,7 +109,7 @@ export default function BookContributorDashboard() {
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 ${
-                activeTab === item.id ? 'bg-amber-100 text-amber-700 border-r-2 border-amber-600' : 'text-gray-600 hover:bg-gray-100'
+                activeTab === item.id ? 'bg-green-100 text-green-700 border-r-2 border-green-600' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <div className="flex items-center space-x-3">
@@ -165,7 +166,7 @@ export default function BookContributorDashboard() {
             {activeTab === 'listings' && (
               <button 
                 onClick={() => setShowAddBookModal(true)}
-                className="hidden sm:flex items-center space-x-2 bg-amber-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-amber-700 transition-all duration-200 transform hover:scale-105"
+                className="hidden sm:flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-all duration-200 transform hover:scale-105"
               >
                 <Plus className="h-4 w-4" />
                 <span>Add Book</span>
@@ -186,11 +187,11 @@ export default function BookContributorDashboard() {
     </header>
   );
 
-  const StatsCard = ({ title, value, subtitle, color, trend }) => (
+  const StatsCard = ({ icon: IconComponent, title, value, subtitle, color, trend }) => (
     <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
       <div className="flex items-center justify-between mb-4">
         <div className={`p-3 rounded-lg ${color}`}>
-          <Icon className="h-6 w-6 text-white" />
+          <IconComponent className="h-6 w-6 text-white" />
         </div>
         {trend && (
           <div className={`flex items-center text-sm font-medium ${trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -286,10 +287,10 @@ export default function BookContributorDashboard() {
                 onDrop={handleDrop}
                 className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer ${
                   isDragging 
-                    ? 'border-amber-500 bg-amber-50' 
+                    ? 'border-green-500 bg-green-50' 
                     : selectedImage 
                     ? 'border-gray-300 hover:border-gray-400' 
-                    : 'border-gray-300 hover:border-amber-500'
+                    : 'border-gray-300 hover:border-green-500'
                 }`}
               >
                 {selectedImage ? (
@@ -329,7 +330,7 @@ export default function BookContributorDashboard() {
                   id="add-title"
                   type="text"
                   placeholder="Enter book title"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
               
@@ -339,13 +340,13 @@ export default function BookContributorDashboard() {
                   id="add-author"
                   type="text"
                   placeholder="Enter author name"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Genre *</label>
-                  <select id="add-genre" className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  <select id="add-genre" className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
                   <option value="">Select genre</option>
                   <option value="fiction">Fiction</option>
                   <option value="non-fiction">Non-Fiction</option>
@@ -369,7 +370,7 @@ export default function BookContributorDashboard() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Condition *</label>
-                <select className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <select className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
                   <option value="">Select condition</option>
                   <option value="like-new">Like New</option>
                   <option value="very-good">Very Good</option>
@@ -383,7 +384,7 @@ export default function BookContributorDashboard() {
                 <select 
                   value={exchangeType}
                   onChange={(e) => setExchangeType(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
                   <option value="">Select type</option>
                   <option value="exchange">Exchange</option>
@@ -395,7 +396,7 @@ export default function BookContributorDashboard() {
               {exchangeType === 'exchange' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Exchange Duration *</label>
-                  <select className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                  <select className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
                     <option value="">How long will you offer this?</option>
                     <option value="15">15 Days</option>
                     <option value="30">30 Days</option>
@@ -410,7 +411,7 @@ export default function BookContributorDashboard() {
                   <input
                     type="number"
                     placeholder="0.00"
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
               )}
@@ -436,12 +437,12 @@ export default function BookContributorDashboard() {
                 id="add-description"
                 rows="4"
                 placeholder="Tell readers about the book's condition, why you're sharing it, etc."
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
               ></textarea>
             </div>
             
             <div className="flex items-center space-x-2">
-              <input type="checkbox" id="terms" className="rounded border-gray-300 text-amber-600 focus:ring-amber-500" />
+              <input type="checkbox" id="terms" className="rounded border-gray-300 text-green-600 focus:ring-green-500" />
               <label htmlFor="terms" className="text-sm text-gray-600">
                 I confirm this book is mine and I agree to the platform's terms
               </label>
@@ -471,7 +472,7 @@ export default function BookContributorDashboard() {
                 } finally {
                   setLoading(false);
                 }
-              }} className="flex-1 px-6 py-3 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors duration-200">
+              }} className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors duration-200">
                 {loading ? 'Saving...' : 'Add Book'}
               </button>
             </div>
@@ -513,7 +514,7 @@ export default function BookContributorDashboard() {
           title="Earnings" 
           value={`$${analytics.earnings}`}
           subtitle="Lifetime"
-          color="bg-amber-500"
+          color="bg-green-500"
           trend={25}
         />
       </div>
@@ -522,12 +523,12 @@ export default function BookContributorDashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="p-6 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-900 flex items-center">
-              <MessageCircle className="h-5 w-5 mr-2 text-amber-600" />
+              <MessageCircle className="h-5 w-5 mr-2 text-green-600" />
               Recent Requests
             </h2>
             <button 
               onClick={() => setActiveTab('requests')}
-              className="text-amber-600 hover:text-amber-700 text-sm font-medium"
+              className="text-green-600 hover:text-green-700 text-sm font-medium"
             >
               View All
             </button>
@@ -535,7 +536,7 @@ export default function BookContributorDashboard() {
           <div className="p-6">
             <div className="space-y-4">
               {recentRequests.slice(0, 3).map((request) => (
-                <div key={request.id} className="p-4 rounded-lg border border-gray-200 hover:border-amber-300 transition-colors duration-200">
+                <div key={request.id} className="p-4 rounded-lg border border-gray-200 hover:border-green-300 transition-colors duration-200">
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <h3 className="font-medium text-gray-900">{request.requester}</h3>
@@ -549,7 +550,7 @@ export default function BookContributorDashboard() {
                   <p className="text-sm text-gray-600 mb-2">Requested: {request.bookTitle}</p>
                   <p className="text-sm text-gray-500 mb-3 line-clamp-2">{request.message}</p>
                   <div className="flex items-center space-x-2">
-                    <button className="flex-1 px-3 py-1.5 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors duration-200">
+                    <button className="flex-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors duration-200">
                       Accept
                     </button>
                     <button className="flex-1 px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors duration-200">
@@ -565,7 +566,7 @@ export default function BookContributorDashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="p-6 border-b border-gray-100">
             <h2 className="text-xl font-bold text-gray-900 flex items-center">
-              <TrendingUp className="h-5 w-5 mr-2 text-amber-600" />
+              <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
               Top Performing Books
             </h2>
           </div>
@@ -627,13 +628,13 @@ export default function BookContributorDashboard() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-4">
             <Filter className="h-5 w-5 text-gray-400" />
-            <select className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
+            <select className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
               <option>All Status</option>
               <option>Active</option>
               <option>Pending</option>
               <option>Completed</option>
             </select>
-            <select className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
+            <select className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
               <option>All Types</option>
               <option>Exchange</option>
               <option>Donate</option>
@@ -643,7 +644,7 @@ export default function BookContributorDashboard() {
           
           <button 
             onClick={() => setShowAddBookModal(true)}
-            className="bg-amber-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-amber-700 transition-colors duration-200 flex items-center justify-center"
+            className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors duration-200 flex items-center justify-center"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Book
@@ -702,7 +703,7 @@ export default function BookContributorDashboard() {
               </div>
               
               <div className="flex items-center space-x-2 pt-3 border-t border-gray-100">
-                <button className="flex-1 flex items-center justify-center px-3 py-2 bg-amber-100 text-amber-700 rounded-lg text-sm font-medium hover:bg-amber-200 transition-colors duration-200">
+                <button className="flex-1 flex items-center justify-center px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium hover:bg-green-200 transition-colors duration-200">
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
                 </button>
