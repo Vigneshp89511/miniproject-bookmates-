@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./frontend/src/assets/Bookmates.mp4" alt="BookMates Logo" width="150" />
+  <img src="./frontend/src/assets/LogoMakerCa-17593269042912.png" alt="BookMates Logo" width="150" />
 </p>
 
 <h1 align="center">📚 BookMates</h1>
