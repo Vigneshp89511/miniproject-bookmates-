@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Play } from "lucide-react";
+import Logo from "../assets/LogoMakerCa-17593269042912.png";
 
 const Hero = () => {
   const stats = [
@@ -13,6 +14,7 @@ const Hero = () => {
     <section className="bg-gradient-to-br from-blue-50 via-green-50 to-red-50 py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
+          <img src={Logo} alt="" className="h-48 mx-auto" />
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
             Share Stories,
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600">
