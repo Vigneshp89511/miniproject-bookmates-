@@ -21,12 +21,12 @@ function Header() {
             >
               Features
             </a>
-            <a
+            {/* <a
               href="#testimonials"
               className="text-gray-700 hover:text-green-600 font-medium transition-colors duration-200"
             >
               Community
-            </a>
+            </a> */}
             <a
               href="#how-it-works"
               className="text-gray-700 hover:text-green-600 font-medium transition-colors duration-200"
@@ -34,10 +34,10 @@ function Header() {
               How It Works
             </a>
             <a
-              href="#testimonials"
+              href="#learn-more"
               className="text-gray-700 hover:text-green-600 font-medium transition-colors duration-200"
             >
-              Reviews
+              Learn More
             </a>
           </nav>
 
