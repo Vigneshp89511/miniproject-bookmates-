@@ -7,6 +7,9 @@ import {
   ChevronRight, Settings, LogOut, Home, Library
 } from "lucide-react";
 import Logo from "../assets/LogoMakerCa-1759326904291.png";
+import Image1 from "../assets/Wings of Fire.jpg";
+import Image2 from "../assets/DS.png";
+import Image3 from "../assets/CN.webp";
 
 export default function BookReaderDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -43,43 +46,75 @@ export default function BookReaderDashboard() {
     init();
   }, []);
 
-  // Sample data
-  const featuredBooks = books.map((b, idx) => ({
-    id: b._id || idx,
-    title: b.title,
-    author: b.author,
-    genre: b.genre,
-    rating: 4.8,
-    reviews: 0,
-    location: "",
-    owner: "",
-    ownerRating: 0,
-    condition: "",
-    exchangeType: b.available ? 'Exchange' : 'Unavailable',
-    image: "/api/placeholder/300/400",
-    description: b.description || "",
-  }));
-
-  const myBooks = [
+ // Sample data
+  const featuredBooks = [
     {
       id: 1,
-      title: "The Seven Husbands of Evelyn Hugo",
-      author: "Taylor Jenkins Reid",
-      genre: "Fiction",
-      status: "Available",
-      requests: 3,
-      views: 45
+      title: "Wings of Fire",
+      author: "A.P.J. Abdul Kalam",
+      genre: "Autobiography",
+      rating: 4.8,
+      reviews: 245,
+      location: "2.3 km away",
+      owner: "Vignesh P",
+      ownerRating: 4.9,
+      condition: "Like New",
+      exchangeType: "Exchange",
+      image: Image1,
+      description: "An inspiring autobiography of India's former President..."
     },
     {
       id: 2,
-      title: "Educated",
-      author: "Tara Westover",
-      genre: "Biography",
-      status: "Exchanged",
-      requests: 0,
-      views: 23
+      title: "Data Structures and Algorithms made easy",
+      author: "Narasimha Karumanchi",
+      genre: "Programming & Coding",
+      rating: 4.9,
+      reviews: 389,
+      location: "1.8 km away",
+      owner: "Sanket",
+      ownerRating: 4.7,
+      condition: "Good",
+      exchangeType: "Donate",
+      image: Image2,
+      description: "A comprehensive guide to data structures and algorithms..."
+    },
+    {
+      id: 3,
+      title: "Compter Networking A Top-Down Approach",
+      author: "James F. Kurose",
+      genre: "Engineering & Technology",
+      rating: 4.7,
+      reviews: 156,
+      location: "3.1 km away",
+      owner: "Revanth",
+      ownerRating: 5.0,
+      condition: "Very Good",
+      exchangeType: "Sell",
+      image: Image3,
+      description: "An essential textbook for understanding computer networking..."
     }
   ];
+
+  // const myBooks = [
+  //   {
+  //     id: 1,
+  //     title: "The Seven Husbands of Evelyn Hugo",
+  //     author: "Taylor Jenkins Reid",
+  //     genre: "Fiction",
+  //     status: "Available",
+  //     requests: 3,
+  //     views: 45
+  //   },
+  //   {
+  //     id: 2,
+  //     title: "Educated",
+  //     author: "Tara Westover",
+  //     genre: "Biography",
+  //     status: "Exchanged",
+  //     requests: 0,
+  //     views: 23
+  //   }
+  // ];
 
   const recentActivity = [
     { type: "request", message: "You requested 'The Midnight Library' from Sarah", time: "2 hours ago" },
@@ -90,6 +125,7 @@ export default function BookReaderDashboard() {
   const genres = [
   "All",
   // Literature & Fiction
+  "Autobiography",
   "Fiction",
   "Non-Fiction",
   "Mystery & Thriller",
@@ -148,7 +184,7 @@ export default function BookReaderDashboard() {
           {[
             { id: 'home', label: 'Dashboard', icon: Home },
             { id: 'browse', label: 'Browse Books', icon: Search },
-            { id: 'library', label: 'My Library', icon: Library },
+            // { id: 'library', label: 'My Library', icon: Library },
             { id: 'favorites', label: 'Favorites', icon: Heart },
             { id: 'messages', label: 'Messages', icon: MessageCircle },
             { id: 'profile', label: 'Profile', icon: User }
@@ -196,7 +232,7 @@ export default function BookReaderDashboard() {
             <h1 className="ml-2 lg:ml-0 text-2xl font-bold text-gray-900">
               {activeTab === 'home' && 'Dashboard'}
               {activeTab === 'browse' && 'Browse Books'}
-              {activeTab === 'library' && 'My Library'}
+              {/* {activeTab === 'library' && 'My Library'} */}
               {activeTab === 'favorites' && 'Favorites'}
               {activeTab === 'messages' && 'Messages'}
               {activeTab === 'profile' && 'Profile'}
@@ -246,7 +282,7 @@ export default function BookReaderDashboard() {
         <img 
           src={book.image} 
           alt={book.title}
-          className="w-full h-64 object-cover rounded-t-xl"
+          className="w-full h-full  object-cover rounded-t-xl"
         />
         <div className="absolute top-2 right-2">
           <span className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -319,7 +355,7 @@ export default function BookReaderDashboard() {
         </div>
         <div className="ml-4">
           <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          <p className="text-xl font-bold text-gray-900">{value}</p>
           {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
         </div>
       </div>
@@ -332,7 +368,7 @@ export default function BookReaderDashboard() {
         return (
           <div className="space-y-6">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               <StatsCard 
                 icon={BookOpen} 
                 title="Favorite Genre" 
@@ -373,7 +409,7 @@ export default function BookReaderDashboard() {
               </div>
               <div className="p-6">
                 <div className="space-y-4">
-                  {recentActivity.map((activity, index) => (
+                   {recentActivity.map((activity, index) => (
                     <div key={index} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                       <div className={`h-2 w-2 rounded-full ${
                         activity.type === 'request' ? 'bg-blue-500' :
@@ -384,7 +420,7 @@ export default function BookReaderDashboard() {
                         <p className="text-xs text-gray-500">{activity.time}</p>
                       </div>
                     </div>
-                  ))}
+                  ))} 
                 </div>
               </div>
             </div>
@@ -450,65 +486,65 @@ export default function BookReaderDashboard() {
           </div>
         );
 
-      case 'library':
-        return (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">My Books</h2>
-              <button className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-green-700 transition-colors duration-200">
-                <Plus className="h-4 w-4" />
-                <span>Add Book</span>
-              </button>
-            </div>
+      // case 'library':
+      //   return (
+      //     <div className="space-y-6">
+      //       <div className="flex justify-between items-center">
+      //         <h2 className="text-2xl font-bold text-gray-900">My Books</h2>
+      //         <button className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-green-700 transition-colors duration-200">
+      //           <Plus className="h-4 w-4" />
+      //           <span>Add Book</span>
+      //         </button>
+      //       </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Book</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requests</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Views</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {myBooks.map(book => (
-                      <tr key={book.id} className="hover:bg-gray-50 transition-colors duration-200">
-                        <td className="px-6 py-4">
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{book.title}</div>
-                            <div className="text-sm text-gray-500">by {book.author}</div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            book.status === 'Available' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {book.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{book.requests}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{book.views}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-2">
-                            <button className="text-green-600 hover:text-green-700">
-                              <Eye className="h-4 w-4" />
-                            </button>
-                            <button className="text-blue-600 hover:text-blue-700">
-                              <Settings className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        );
+      //       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+      //         <div className="overflow-x-auto">
+      //           <table className="w-full">
+      //             <thead className="bg-gray-50 border-b border-gray-200">
+      //               <tr>
+      //                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Book</th>
+      //                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+      //                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requests</th>
+      //                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Views</th>
+      //                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+      //               </tr>
+      //             </thead>
+      //             <tbody className="bg-white divide-y divide-gray-200">
+      //               {myBooks.map(book => (
+      //                 <tr key={book.id} className="hover:bg-gray-50 transition-colors duration-200">
+      //                   <td className="px-6 py-4">
+      //                     <div>
+      //                       <div className="text-sm font-medium text-gray-900">{book.title}</div>
+      //                       <div className="text-sm text-gray-500">by {book.author}</div>
+      //                     </div>
+      //                   </td>
+      //                   <td className="px-6 py-4">
+      //                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+      //                       book.status === 'Available' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+      //                     }`}>
+      //                       {book.status}
+      //                     </span>
+      //                   </td>
+      //                   <td className="px-6 py-4 text-sm text-gray-900">{book.requests}</td>
+      //                   <td className="px-6 py-4 text-sm text-gray-900">{book.views}</td>
+      //                   <td className="px-6 py-4">
+      //                     <div className="flex items-center space-x-2">
+      //                       <button className="text-green-600 hover:text-green-700">
+      //                         <Eye className="h-4 w-4" />
+      //                       </button>
+      //                       <button className="text-blue-600 hover:text-blue-700">
+      //                         <Settings className="h-4 w-4" />
+      //                       </button>
+      //                     </div>
+      //                   </td>
+      //                 </tr>
+      //               ))}
+      //             </tbody>
+      //           </table>
+      //         </div>
+      //       </div>
+      //     </div>
+      //   );
 
       default:
         return (
