@@ -10,6 +10,10 @@ import {
   Upload, Camera, Filter, Download, RefreshCw
 } from "lucide-react";
 import Logo from "../assets/LogoMakerCa-1759326904291.png";
+import Image1 from "../assets/Wings of Fire.jpg";
+import Image2 from "../assets/DS.png";
+import Image3 from "../assets/CN.webp";
+import Image4 from "../assets/Book4.jpg"
 
 export default function BookContributorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,8 +24,8 @@ export default function BookContributorDashboard() {
   const [myBooks, setMyBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [analytics, setAnalytics] = useState({ totalListings: 0, activeListings: 0, completedExchanges: 0, totalViews: 0, totalRequests: 0, averageRating: 0, earnings: 0 });
-  const [recentRequests, setRecentRequests] = useState([]);
+  // const [analytics, setAnalytics] = useState({ totalListings: 0, activeListings: 0, completedExchanges: 0, totalViews: 0, totalRequests: 0, averageRating: 0, earnings: 0 });
+  // const [recentRequests, setRecentRequests] = useState([]);
 
   useEffect(() => {
     const token = getToken();
@@ -50,21 +54,110 @@ export default function BookContributorDashboard() {
   }, []);
 
   // Sample data
-  const myListings = myBooks.map((b) => ({
-    id: b._id,
-    title: b.title,
-    author: b.author,
-    genre: b.genre,
-    condition: "",
-    exchangeType: b.available ? 'Exchange' : 'Unavailable',
-    price: null,
-    status: b.available ? 'Active' : 'Inactive',
-    views: 0,
-    requests: 0,
-    favorites: 0,
-    dateAdded: (b.createdAt ? new Date(b.createdAt) : new Date()).toISOString().slice(0,10),
-    image: "/api/placeholder/150/200"
-  }));
+  const myListings = [
+    {
+      id: 1,
+      title: "Wings of Fire",
+      author: "A.P.J. Abdul Kalam",
+      genre: "Biography",
+      condition: "Like New",
+      exchangeType: "Exchange",
+      price: null,
+      status: "Active",
+      views: 245,
+      requests: 8,
+      favorites: 12,
+      dateAdded: "2024-01-15",
+      image: Image1
+    },
+    {
+      id: 2,
+      title: "Data Structures and Algorithms made easy",
+      author: "Narasimha Karumanchi",
+      genre: "Programming & Coding",
+      condition: "Good",
+      exchangeType: "Donate",
+      price: null,
+      status: "Active",
+      views: 189,
+      requests: 5,
+      favorites: 8,
+      dateAdded: "2024-01-20",
+      image: Image2
+    },
+    {
+      id: 3,
+      title: "Compter Networking A Top-Down Approach",
+      author: "James F. Kurose",
+      genre: "Engineering & Technology",
+      condition: "Very Good",
+      exchangeType: "Sell",
+      price: 250.00,
+      status: "Pending",
+      views: 156,
+      requests: 3,
+      favorites: 6,
+      dateAdded: "2024-02-01",
+      image: Image3
+    },
+    {
+      id: 4,
+      title: "Atomic Habits",
+      author: "James Clear",
+      genre: "Self-Help",
+      condition: "Like New",
+      exchangeType: "Exchange",
+      price: null,
+      status: "Completed",
+      views: 312,
+      requests: 12,
+      favorites: 18,
+      dateAdded: "2023-12-10",
+      image: Image4
+    }
+  ];
+
+  const recentRequests = [
+    {
+      id: 1,
+      bookTitle: "Wings of Fire",
+      requester: "Shakthi Vel K",
+      requesterRating: 4.9,
+      message: "I've been looking for this book! Would love to exchange...",
+      time: "2 hours ago",
+      status: "pending"
+    },
+    {
+      id: 2,
+      bookTitle: "Data Structures and Algorithms made easy",
+      requester: "Revanth",
+      requesterRating: 4.7,
+      message: "Thanks for offering this for donation!",
+      time: "5 hours ago",
+      status: "pending"
+    },
+    {
+      id: 3,
+      bookTitle: "Compter Networking A Top-Down Approach",
+      requester: "Sanket",
+      requesterRating: 5.0,
+      message: "Is this still available? Happy to pay asking price.",
+      time: "1 day ago",
+      status: "accepted"
+    }
+  ];
+
+  const analytics = {
+    totalListings: 12,
+    activeListings: 8,
+    completedExchanges: 24,
+    totalViews: 3456,
+    totalRequests: 67,
+    averageRating: 4.8,
+    earnings: 156.50
+  };
+
+
 
 
   const Sidebar = () => (
@@ -512,23 +605,25 @@ export default function BookContributorDashboard() {
         <StatsCard 
           icon={DollarSign} 
           title="Earnings" 
-          value={`$${analytics.earnings}`}
+          value={`${analytics.earnings}`}
           subtitle="Lifetime"
           color="bg-green-500"
           trend={25}
         />
       </div>
 
+       {/* Recent Activity & Requests */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Requests */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="p-6 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-900 flex items-center">
-              <MessageCircle className="h-5 w-5 mr-2 text-green-600" />
+              <MessageCircle className="h-5 w-5 mr-2 text-amber-600" />
               Recent Requests
             </h2>
             <button 
               onClick={() => setActiveTab('requests')}
-              className="text-green-600 hover:text-green-700 text-sm font-medium"
+              className="text-amber-600 hover:text-amber-700 text-sm font-medium"
             >
               View All
             </button>
@@ -536,7 +631,7 @@ export default function BookContributorDashboard() {
           <div className="p-6">
             <div className="space-y-4">
               {recentRequests.slice(0, 3).map((request) => (
-                <div key={request.id} className="p-4 rounded-lg border border-gray-200 hover:border-green-300 transition-colors duration-200">
+                <div key={request.id} className="p-4 rounded-lg border border-gray-200 hover:border-amber-300 transition-colors duration-200">
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <h3 className="font-medium text-gray-900">{request.requester}</h3>
@@ -550,7 +645,7 @@ export default function BookContributorDashboard() {
                   <p className="text-sm text-gray-600 mb-2">Requested: {request.bookTitle}</p>
                   <p className="text-sm text-gray-500 mb-3 line-clamp-2">{request.message}</p>
                   <div className="flex items-center space-x-2">
-                    <button className="flex-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors duration-200">
+                    <button className="flex-1 px-3 py-1.5 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors duration-200">
                       Accept
                     </button>
                     <button className="flex-1 px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors duration-200">
@@ -622,19 +717,20 @@ export default function BookContributorDashboard() {
     </div>
   );
 
-  const renderListings = () => (
+   const renderListings = () => (
     <div className="space-y-6">
+      {/* Filter Bar */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-4">
             <Filter className="h-5 w-5 text-gray-400" />
-            <select className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+            <select className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
               <option>All Status</option>
               <option>Active</option>
               <option>Pending</option>
               <option>Completed</option>
             </select>
-            <select className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+            <select className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
               <option>All Types</option>
               <option>Exchange</option>
               <option>Donate</option>
@@ -644,7 +740,7 @@ export default function BookContributorDashboard() {
           
           <button 
             onClick={() => setShowAddBookModal(true)}
-            className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors duration-200 flex items-center justify-center"
+            className="bg-amber-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-amber-700 transition-colors duration-200 flex items-center justify-center"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Book
@@ -652,6 +748,7 @@ export default function BookContributorDashboard() {
         </div>
       </div>
 
+      {/* Listings Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {myListings.map((book) => (
           <div key={book.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
@@ -688,6 +785,13 @@ export default function BookContributorDashboard() {
               <div className="grid grid-cols-3 gap-3 mb-4">
                 <div className="text-center">
                   <div className="flex items-center justify-center text-gray-600 mb-1">
+                    <Eye className="h-4 w-4" />
+                  </div>
+                  <p className="text-sm font-bold text-gray-900">{book.views}</p>
+                  <p className="text-xs text-gray-500">Views</p>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center text-gray-600 mb-1">
                     <MessageCircle className="h-4 w-4" />
                   </div>
                   <p className="text-sm font-bold text-gray-900">{book.requests}</p>
@@ -703,7 +807,7 @@ export default function BookContributorDashboard() {
               </div>
               
               <div className="flex items-center space-x-2 pt-3 border-t border-gray-100">
-                <button className="flex-1 flex items-center justify-center px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium hover:bg-green-200 transition-colors duration-200">
+                <button className="flex-1 flex items-center justify-center px-3 py-2 bg-amber-100 text-amber-700 rounded-lg text-sm font-medium hover:bg-amber-200 transition-colors duration-200">
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
                 </button>
@@ -711,14 +815,7 @@ export default function BookContributorDashboard() {
                   <Share2 className="h-4 w-4 mr-1" />
                   Share
                 </button>
-                <button onClick={async () => {
-                  try {
-                    await deleteMyBook(book.id);
-                    setMyBooks((list) => list.filter((b) => b._id !== book.id));
-                  } catch (err) {
-                    setError(err.message || 'Delete failed');
-                  }
-                }} className="px-3 py-2 border border-red-300 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors duration-200">
+                <button className="px-3 py-2 border border-red-300 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors duration-200">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
@@ -729,12 +826,202 @@ export default function BookContributorDashboard() {
     </div>
   );
 
+  const renderRequests = () => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900">Book Requests</h2>
+            <span className="text-sm text-gray-500">{recentRequests.length} pending requests</span>
+          </div>
+        </div>
+        
+        <div className="divide-y divide-gray-200">
+          {recentRequests.map((request) => (
+            <div key={request.id} className="p-6 hover:bg-gray-50 transition-colors duration-200">
+              <div className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-4 mb-3">
+                    <div className="h-12 w-12 bg-amber-100 rounded-full flex items-center justify-center">
+                      <User className="h-6 w-6 text-amber-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900">{request.requester}</h3>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Star className="h-3 w-3 text-yellow-400 fill-current mr-1" />
+                        {request.requesterRating} rating
+                        <span className="mx-2">•</span>
+                        <Clock className="h-3 w-3 mr-1" />
+                        {request.time}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                    <p className="text-sm font-medium text-gray-700 mb-1">Requested Book:</p>
+                    <p className="text-sm text-gray-900 font-bold">{request.bookTitle}</p>
+                  </div>
+                  
+                  <p className="text-gray-600 text-sm">{request.message}</p>
+                </div>
+                
+                <div className="flex md:flex-col items-center md:items-end space-x-2 md:space-x-0 md:space-y-2">
+                  {request.status === 'pending' ? (
+                    <>
+                      <button className="flex-1 md:flex-none w-full md:w-auto px-6 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors duration-200 flex items-center justify-center">
+                        <Check className="h-4 w-4 mr-2" />
+                        Accept
+                      </button>
+                      <button className="flex-1 md:flex-none w-full md:w-auto px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200">
+                        Decline
+                      </button>
+                      <button className="px-4 py-2 text-amber-600 hover:text-amber-700 transition-colors duration-200">
+                        <MessageCircle className="h-5 w-5" />
+                      </button>
+                    </>
+                  ) : (
+                    <span className="px-4 py-2 bg-green-100 text-green-800 rounded-lg text-sm font-medium">
+                      Accepted
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderAnalytics = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard 
+          icon={Eye} 
+          title="Total Views" 
+          value={analytics.totalViews}
+          subtitle="All time"
+          color="bg-blue-500"
+        />
+        <StatsCard 
+          icon={Heart} 
+          title="Total Favorites" 
+          value="89"
+          subtitle="Across all books"
+          color="bg-red-500"
+        />
+        <StatsCard 
+          icon={Users} 
+          title="Unique Visitors" 
+          value="1,234"
+          subtitle="This month"
+          color="bg-purple-500"
+        />
+        <StatsCard 
+          icon={TrendingUp} 
+          title="Success Rate" 
+          value="87%"
+          subtitle="Completed exchanges"
+          color="bg-green-500"
+        />
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-6">Performance Overview</h2>
+        <div className="h-64 flex items-center justify-center text-gray-400">
+          <div className="text-center">
+            <BarChart3 className="h-16 w-16 mx-auto mb-4" />
+            <p>Analytics chart would go here</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderEarnings = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <StatsCard 
+          icon={DollarSign} 
+          title="Total Earnings" 
+          value={`${analytics.earnings}`}
+          subtitle="All time"
+          color="bg-green-500"
+        />
+        <StatsCard 
+          icon={TrendingUp} 
+          title="This Month" 
+          value="250.50"
+          subtitle="+23% from last month"
+          color="bg-blue-500"
+        />
+        <StatsCard 
+          icon={Package} 
+          title="Books Sold" 
+          value="12"
+          subtitle="Completed sales"
+          color="bg-purple-500"
+        />
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">Transaction History</h2>
+          <button className="flex items-center space-x-2 text-amber-600 hover:text-amber-700 font-medium">
+            <Download className="h-4 w-4" />
+            <span>Export</span>
+          </button>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Book</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {[
+                { date: '2024-02-15', book: 'Atomic Habits', type: 'Sale', amount: '250.99', status: 'Completed' },
+                { date: '2024-02-10', book: 'The Midnight Library', type: 'Sale', amount: '150.50', status: 'Completed' },
+                { date: '2024-02-05', book: 'Project Hail Mary', type: 'Sale', amount: '100.00', status: 'Completed' }
+              ].map((transaction, index) => (
+                <tr key={index} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 text-sm text-gray-900">{transaction.date}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{transaction.book}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{transaction.type}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{transaction.amount}</td>
+                  <td className="px-6 py-4">
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                      {transaction.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
         return renderDashboard();
       case 'listings':
         return renderListings();
+      case 'requests':
+        return renderRequests();
+      case 'analytics':
+        return renderAnalytics();
+      case 'earnings':
+        return renderEarnings();
       default:
         return (
           <div className="flex items-center justify-center h-64">
@@ -747,6 +1034,7 @@ export default function BookContributorDashboard() {
         );
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
