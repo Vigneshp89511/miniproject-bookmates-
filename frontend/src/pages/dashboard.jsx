@@ -117,9 +117,9 @@ export default function BookReaderDashboard() {
   // ];
 
   const recentActivity = [
-    { type: "request", message: "You requested 'The Midnight Library' from Sarah", time: "2 hours ago" },
-    { type: "match", message: "Your book 'Educated' was requested by Alex", time: "5 hours ago" },
-    { type: "review", message: "You received a 5-star review from Emma", time: "1 day ago" }
+    { type: "request", message: "You requested 'Data Structures and Algorithms made easy' from Sanket", time: "2 hours ago" },
+    { type: "match", message: "Your have requested for 'Wings of Fire", time: "5 hours ago" },
+    { type: "review", message: "You received a 5-star review from Veeru", time: "1 day ago" }
   ];
 
   const genres = [
