@@ -42,7 +42,7 @@
 
 ### 1️⃣ Clone the Repository
 ```bash
-git clone https://github.com/your-username/bookmates.git
+git clone https://github.com/Vigneshp89511/bookMates.git
 cd bookmates
 ```
 ### 2️⃣ Install Dependencies
