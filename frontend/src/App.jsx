@@ -1,7 +1,7 @@
 import React from 'react'
 import Home from './pages/Home'
 import Auth from './pages/Auth'
-import Dashboard from './pages/Dashboard'
+import Dashboard from './pages/dashboard'
 import BookContributorDashboard from './pages/BookContributor'
 import ChooseDashboard from './pages/ChooseDashboard'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
