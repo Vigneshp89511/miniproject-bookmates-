@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useRef } from "react";
 import { getToken, getUser, logout } from "../lib/api";
 import { listMyBooks, createMyBook, deleteMyBook, getContributorAnalytics, getContributorRequests } from "../lib/api";
 import { 
@@ -9,12 +9,16 @@ import {
   Package, Edit, Trash2, Check, AlertCircle, BarChart3,
   Upload, Camera, Filter, Download, RefreshCw
 } from "lucide-react";
+
+import { useNavigate } from 'react-router-dom'
 import Logo from "../assets/LogoMakerCa-1759326904291.png";
 import Image1 from "../assets/Wings of Fire.jpg";
 import Image2 from "../assets/DS.png";
 import Image3 from "../assets/CN.webp";
 import Image4 from "../assets/Book4.jpg"
-
+ 
+import axios from "axios";
+ 
 export default function BookContributorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -33,6 +37,7 @@ export default function BookContributorDashboard() {
       window.location.href = '/auth';
       return;
     }
+    fetchContributorBooks()
     setUser(getUser());
     (async () => {
       try {
@@ -54,68 +59,23 @@ export default function BookContributorDashboard() {
   }, []);
 
   // Sample data
-  const myListings = [
-    {
-      id: 1,
-      title: "Wings of Fire",
-      author: "A.P.J. Abdul Kalam",
-      genre: "Biography",
-      condition: "Like New",
-      exchangeType: "Exchange",
-      price: null,
-      status: "Active",
-      views: 245,
-      requests: 8,
-      favorites: 12,
-      dateAdded: "2024-01-15",
-      image: Image1
-    },
-    {
-      id: 2,
-      title: "Data Structures and Algorithms made easy",
-      author: "Narasimha Karumanchi",
-      genre: "Programming & Coding",
-      condition: "Good",
-      exchangeType: "Donate",
-      price: null,
-      status: "Active",
-      views: 189,
-      requests: 5,
-      favorites: 8,
-      dateAdded: "2024-01-20",
-      image: Image2
-    },
-    {
-      id: 3,
-      title: "Compter Networking A Top-Down Approach",
-      author: "James F. Kurose",
-      genre: "Engineering & Technology",
-      condition: "Very Good",
-      exchangeType: "Sell",
-      price: 250.00,
-      status: "Pending",
-      views: 156,
-      requests: 3,
-      favorites: 6,
-      dateAdded: "2024-02-01",
-      image: Image3
-    },
-    {
-      id: 4,
-      title: "Atomic Habits",
-      author: "James Clear",
-      genre: "Self-Help",
-      condition: "Like New",
-      exchangeType: "Exchange",
-      price: null,
-      status: "Completed",
-      views: 312,
-      requests: 12,
-      favorites: 18,
-      dateAdded: "2023-12-10",
-      image: Image4
-    }
-  ];
+  const [myListings,setmyListings] =  useState([])
+
+  // get info
+  const fetchContributorBooks = async () => {
+  try {
+    console.log("hello2")
+    const response = await axios.get('http://localhost:4000/api/contributer/books'); // or full URL if needed
+    console.log("hello3")
+    console.log('Books:', response.data.response);
+    setmyListings(response.data.response);
+  } catch (error) {
+    console.error('Error fetching contributor books:', error);
+    throw error;
+  }
+};
+
+ 
 
   const recentRequests = [
     {
@@ -299,281 +259,313 @@ export default function BookContributorDashboard() {
     </div>
   );
 
-  const AddBookModal = () => {
-    const [selectedImage, setSelectedImage] = useState(null);
-    const [isDragging, setIsDragging] = useState(false);
-    const fileInputRef = React.useRef(null);
+const AddBookModal = () => {
+  const navigate = useNavigate();
 
-    const handleClose = () => {
-      setShowAddBookModal(false);
-      setExchangeType('');
-      setSelectedImage(null);
-    };
+  const fileInputRef = useRef(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [exchangeType, setExchangeType] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-    const handleImageSelect = (e) => {
-      const file = e.target.files[0];
-      if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setSelectedImage(reader.result);
-        };
-        reader.readAsDataURL(file);
-      }
-    };
+  // 🧠 Handle image selection
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setSelectedImage(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
 
-    const handleCameraClick = () => {
-      fileInputRef.current.click();
-    };
+  // 📸 Trigger camera or file selector
+  const handleCameraClick = () => {
+    fileInputRef.current?.click();
+  };
 
-    const handleDragOver = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(true);
-    };
+  // 🪣 Drag and Drop
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+  const handleDragLeave = () => setIsDragging(false);
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleImageSelect({ target: { files: [file] } });
+  };
+ 
+const handleClose = ()=>{
+    window.location.reload()
+  
+}
 
-    const handleDragLeave = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
-    };
+  // 💾 Submit handler
+const handleSubmit = async () => {
+  try {
+    setLoading(true);
+    setError("");
 
-    const handleDrop = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
+    const title = document.querySelector("#add-title")?.value || "";
+    const author = document.querySelector("#add-author")?.value || "";
+    const genre = document.querySelector("#add-genre")?.value || "";
+    const condition = document.querySelector("#add-condition")?.value || "";
+    const description = document.querySelector("#add-description")?.value || "";
+    const exchangeDuration = document.querySelector("#add-duration")?.value || "";
+    const price = document.querySelector("#add-price")?.value || "";
+    const termsAccepted = document.querySelector("#terms")?.checked || false;
 
-      const files = e.dataTransfer.files;
-      if (files && files[0] && files[0].type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setSelectedImage(reader.result);
-        };
-        reader.readAsDataURL(files[0]);
-      }
-    };
+    if (!title || !author || !genre || !condition || !exchangeType) {
+      setError("Please fill all required fields and accept terms");
+      return;
+    }
 
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">Add New Book</h2>
-            <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-          
-          <div className="p-6 space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Book Cover</label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleImageSelect}
-                className="hidden"
-              />
-              <div 
-                onClick={handleCameraClick}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer ${
-                  isDragging 
-                    ? 'border-green-500 bg-green-50' 
-                    : selectedImage 
-                    ? 'border-gray-300 hover:border-gray-400' 
-                    : 'border-gray-300 hover:border-green-500'
-                }`}
-              >
-                {selectedImage ? (
-                  <div className="relative">
-                    <img 
-                      src={selectedImage} 
-                      alt="Book cover preview" 
-                      className="max-h-64 mx-auto rounded-lg"
-                    />
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedImage(null);
-                      }}
-                      className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-200"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                    <p className="text-sm text-gray-500 mt-4">Click to change photo or drag and drop new one</p>
-                  </div>
-                ) : (
-                  <>
-                    <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-2">
-                      {isDragging ? 'Drop book photo here' : 'Click to add book photo or drag and drop'}
-                    </p>
-                    <p className="text-sm text-gray-500">PNG, JPG up to 10MB</p>
-                  </>
-                )}
-              </div>
-            </div>
-            
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Book Title *</label>
-                <input
-                  id="add-title"
-                  type="text"
-                  placeholder="Enter book title"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Author *</label>
-                <input
-                  id="add-author"
-                  type="text"
-                  placeholder="Enter author name"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Genre *</label>
-                  <select id="add-genre" className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
-                  <option value="">Select genre</option>
-                  <option value="fiction">Fiction</option>
-                  <option value="non-fiction">Non-Fiction</option>
-                  <option value="mystery">Mystery & Thriller</option>
-                  <option value="romance">Romance</option>
-                  <option value="sci-fi">Science Fiction</option>
-                  <option value="fantasy">Fantasy</option>
-                  <option value="biography">Biography</option>
-                  <option value="history">History</option>
-                  <option value="self-help">Self-Help</option>
-                  <option value="engineering">Engineering & Technology</option>
-                  <option value="programming">Programming & Coding</option>
-                  <option value="mechanical">Mechanical & Robotics</option>
-                  <option value="electrical">Electrical & Electronics</option>
-                  <option value="civil">Civil Engineering</option>
-                  <option value="mathematics">Mathematics & Logic</option>
-                  <option value="ai-ml">AI & Machine Learning</option>
-                  <option value="data-science">Data Science & Analytics</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Condition *</label>
-                <select className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
-                  <option value="">Select condition</option>
-                  <option value="like-new">Like New</option>
-                  <option value="very-good">Very Good</option>
-                  <option value="good">Good</option>
-                  <option value="acceptable">Acceptable</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Exchange Type *</label>
-                <select 
-                  value={exchangeType}
-                  onChange={(e) => setExchangeType(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="">Select type</option>
-                  <option value="exchange">Exchange</option>
-                  <option value="donate">Donate</option>
-                  <option value="sell">Sell</option>
-                </select>
-              </div>
-              
-              {exchangeType === 'exchange' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Exchange Duration *</label>
-                  <select className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
-                    <option value="">How long will you offer this?</option>
-                    <option value="15">15 Days</option>
-                    <option value="30">30 Days</option>
-                    <option value="60">60 Days</option>
-                  </select>
-                </div>
-              )}
-              
-              {exchangeType === 'sell' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Price *</label>
-                  <input
-                    type="number"
-                    placeholder="0.00"
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("author", author);
+    formData.append("genre", genre);
+    formData.append("condition", condition);
+    formData.append("exchangeType", exchangeType);
+    formData.append("description", description);
+    formData.append("termsAccepted", termsAccepted);
+    if (exchangeType === "exchange") formData.append("exchangeDuration", exchangeDuration);
+    if (exchangeType === "sell") formData.append("price", price);
+    if (fileInputRef.current?.files[0]) {
+      formData.append("coverImage", fileInputRef.current.files[0]);
+    }
+
+    // Axios POST request
+    const token = getToken()
+    const createdBook = await axios.post("http://localhost:4000/api/contributer/books", formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "multipart/form-data",
+    },});
+    setMyBooks((prev) => [createdBook.data, ...prev]);
+    handleClose();
+  } catch (err) {
+    setError(err.response?.data?.message || err.message || "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900">Add New Book</h2>
+          <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* 📸 Book Cover */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Book Cover
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+            <div
+              onClick={handleCameraClick}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer ${
+                isDragging
+                  ? "border-green-500 bg-green-50"
+                  : selectedImage
+                  ? "border-gray-300 hover:border-gray-400"
+                  : "border-gray-300 hover:border-green-500"
+              }`}
+            >
+              {selectedImage ? (
+                <div className="relative">
+                  <img
+                    src={selectedImage}
+                    alt="Book cover preview"
+                    className="max-h-64 mx-auto rounded-lg"
                   />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedImage(null);
+                    }}
+                    className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-200"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                  <p className="text-sm text-gray-500 mt-4">
+                    Click to change photo or drag and drop new one
+                  </p>
                 </div>
+              ) : (
+                <>
+                  <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600 mb-2">
+                    {isDragging
+                      ? "Drop book photo here"
+                      : "Click to add book photo or drag and drop"}
+                  </p>
+                  <p className="text-sm text-gray-500">PNG, JPG up to 10MB</p>
+                </>
               )}
             </div>
-            
-            {exchangeType === 'exchange' && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-start space-x-3">
-                  <Clock className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-blue-900">About Exchange Duration</p>
-                    <p className="text-sm text-blue-700 mt-1">
-                      Choose how long you're willing to keep this book available for exchange. Your listing will remain active for this period, and you can renew it anytime before it expires.
-                    </p>
-                  </div>
-                </div>
+          </div>
+
+          {/* 📚 Form Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Book Title *
+              </label>
+              <input
+                id="add-title"
+                type="text"
+                placeholder="Enter book title"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Author *
+              </label>
+              <input
+                id="add-author"
+                type="text"
+                placeholder="Enter author name"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Genre *
+              </label>
+              <select
+                id="add-genre"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+              >
+                <option value="">Select genre</option>
+                <option value="fiction">Fiction</option>
+                <option value="programming">Programming & Coding</option>
+                <option value="ai-ml">AI & Machine Learning</option>
+                <option value="data-science">Data Science</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Condition *
+              </label>
+              <select
+                id="add-condition"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+              >
+                <option value="">Select condition</option>
+                <option value="like-new">Like New</option>
+                <option value="good">Good</option>
+                <option value="acceptable">Acceptable</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Exchange Type *
+              </label>
+              <select
+                value={exchangeType}
+                onChange={(e) => setExchangeType(e.target.value)}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+              >
+                <option value="">Select type</option>
+                <option value="exchange">Exchange</option>
+                <option value="donate">Donate</option>
+                <option value="sell">Sell</option>
+              </select>
+            </div>
+
+            {exchangeType === "exchange" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Exchange Duration *
+                </label>
+                <select
+                  id="add-duration"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="">Select duration</option>
+                  <option value="15">15 Days</option>
+                  <option value="30">30 Days</option>
+                  <option value="60">60 Days</option>
+                </select>
               </div>
             )}
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-              <textarea
-                id="add-description"
-                rows="4"
-                placeholder="Tell readers about the book's condition, why you're sharing it, etc."
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
-              ></textarea>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <input type="checkbox" id="terms" className="rounded border-gray-300 text-green-600 focus:ring-green-500" />
-              <label htmlFor="terms" className="text-sm text-gray-600">
-                I confirm this book is mine and I agree to the platform's terms
-              </label>
-            </div>
-            
-            <div className="flex items-center space-x-4 pt-4">
-              <button 
-                onClick={handleClose}
-                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200"
-              >
-                Cancel
-              </button>
-              <button onClick={async () => {
-                try {
-                  setLoading(true);
-                  setError('');
-                  const title = document.querySelector('#add-title')?.value || '';
-                  const author = document.querySelector('#add-author')?.value || '';
-                  const genre = document.querySelector('#add-genre')?.value || '';
-                  const description = document.querySelector('#add-description')?.value || '';
-                  const payload = { title, author, genre, description, available: true };
-                  const created = await createMyBook(payload);
-                  setMyBooks((list) => [created, ...list]);
-                  handleClose();
-                } catch (err) {
-                  setError(err.message || 'Failed to add book');
-                } finally {
-                  setLoading(false);
-                }
-              }} className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors duration-200">
-                {loading ? 'Saving...' : 'Add Book'}
-              </button>
-            </div>
+
+            {exchangeType === "sell" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Price *
+                </label>
+                <input
+                  id="add-price"
+                  type="number"
+                  placeholder="0.00"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* 📝 Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
+            <textarea
+              id="add-description"
+              rows="4"
+              placeholder="Describe the book..."
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+            ></textarea>
+          </div>
+
+          {error && <p className="text-red-600 text-sm">{error}</p>}
+
+          {/* ✅ Buttons */}
+          <div className="flex items-center space-x-4 pt-4">
+            <button
+              onClick={handleClose}
+              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700"
+            >
+              {loading ? "Saving..." : "Add Book"}
+            </button>
           </div>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
+
+ 
 
   const renderDashboard = () => (
     <div className="space-y-6">
@@ -667,10 +659,10 @@ export default function BookContributorDashboard() {
           </div>
           <div className="p-6">
             <div className="space-y-4">
-              {myListings.slice(0, 3).map((book) => (
+              {myListings.map((book) => (
                 <div key={book.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                   <img 
-                    src={book.image} 
+                    src={`data:image/jpeg;base64,${book.coverImage}`} 
                     alt={book.title}
                     className="w-12 h-16 object-cover rounded"
                   />
@@ -754,7 +746,7 @@ export default function BookContributorDashboard() {
           <div key={book.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
             <div className="relative">
               <img 
-                src={book.image} 
+                src={`data:image/jpeg;base64,${book.coverImage}`}
                 alt={book.title}
                 className="w-full h-64 object-cover rounded-t-xl"
               />

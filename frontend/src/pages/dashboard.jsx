@@ -3,13 +3,10 @@ import { getReaderProfile, searchReaderBooks, logout, getToken } from "../lib/ap
 import { 
   BookOpen, Search, Heart, User, Bell, Menu, X, 
   Filter, Star, MapPin, MessageCircle, Share2, 
-  Clock, TrendingUp, Award, Users, Eye, Plus,
-  ChevronRight, Settings, LogOut, Home, Library
+  Clock, TrendingUp, Award, Users, ChevronRight, Settings, LogOut, Home
 } from "lucide-react";
 import Logo from "../assets/LogoMakerCa-1759326904291.png";
-import Image1 from "../assets/Wings of Fire.jpg";
-import Image2 from "../assets/DS.png";
-import Image3 from "../assets/CN.webp";
+import axios from "axios";
 
 export default function BookReaderDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -18,6 +15,7 @@ export default function BookReaderDashboard() {
   const [filterGenre, setFilterGenre] = useState('all');
   const [profile, setProfile] = useState(null);
   const [books, setBooks] = useState([]);
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -30,10 +28,8 @@ export default function BookReaderDashboard() {
           window.location.href = '/auth';
           return;
         }
-        const p = await getReaderProfile();
-        setProfile(p);
-        const list = await searchReaderBooks('');
-        setBooks(list);
+        console.log(token);
+        fetchNotes()
       } catch (err) {
         setError(err.message || 'Failed to load');
         if (String(err.message || '').toLowerCase().includes('unauthorized')) {
@@ -46,54 +42,68 @@ export default function BookReaderDashboard() {
     init();
   }, []);
 
- // Sample data
-  const featuredBooks = [
-    {
-      id: 1,
-      title: "Wings of Fire",
-      author: "A.P.J. Abdul Kalam",
-      genre: "Autobiography",
-      rating: 4.8,
-      reviews: 245,
-      location: "2.3 km away",
-      owner: "Vignesh P",
-      ownerRating: 4.9,
-      condition: "Like New",
-      exchangeType: "Exchange",
-      image: Image1,
-      description: "An inspiring autobiography of India's former President..."
-    },
-    {
-      id: 2,
-      title: "Data Structures and Algorithms made easy",
-      author: "Narasimha Karumanchi",
-      genre: "Programming & Coding",
-      rating: 4.9,
-      reviews: 389,
-      location: "1.8 km away",
-      owner: "Sanket",
-      ownerRating: 4.7,
-      condition: "Good",
-      exchangeType: "Donate",
-      image: Image2,
-      description: "A comprehensive guide to data structures and algorithms..."
-    },
-    {
-      id: 3,
-      title: "Compter Networking A Top-Down Approach",
-      author: "James F. Kurose",
-      genre: "Engineering & Technology",
-      rating: 4.7,
-      reviews: 156,
-      location: "3.1 km away",
-      owner: "Revanth",
-      ownerRating: 5.0,
-      condition: "Very Good",
-      exchangeType: "Sell",
-      image: Image3,
-      description: "An essential textbook for understanding computer networking..."
+   
+  // const featuredBooks = [
+  //   {
+  //     id: 1,
+  //     title: "Wings of Fire",
+  //     author: "A.P.J. Abdul Kalam",
+  //     genre: "Autobiography",
+  //     rating: 4.8,
+  //     reviews: 245,
+  //     location: "2.3 km away",
+  //     owner: "Vignesh P",
+  //     ownerRating: 4.9,
+  //     condition: "Like New",
+  //     exchangeType: "Exchange",
+  //     image: Image1,
+  //     description: "An inspiring autobiography of India's former President..."
+  //   },
+  //   {
+  //     id: 2,
+  //     title: "Data Structures and Algorithms made easy",
+  //     author: "Narasimha Karumanchi",
+  //     genre: "Programming & Coding",
+  //     rating: 4.9,
+  //     reviews: 389,
+  //     location: "1.8 km away",
+  //     owner: "Sanket",
+  //     ownerRating: 4.7,
+  //     condition: "Good",
+  //     exchangeType: "Donate",
+  //     image: Image2,
+  //     description: "A comprehensive guide to data structures and algorithms..."
+  //   },
+  //   {
+  //     id: 3,
+  //     title: "Compter Networking A Top-Down Approach",
+  //     author: "James F. Kurose",
+  //     genre: "Engineering & Technology",
+  //     rating: 4.7,
+  //     reviews: 156,
+  //     location: "3.1 km away",
+  //     owner: "Revanth",
+  //     ownerRating: 5.0,
+  //     condition: "Very Good",
+  //     exchangeType: "Sell",
+  //     image: Image3,
+  //     description: "An essential textbook for understanding computer networking..."
+  //   }
+  // ];
+
+  const [featuredBooks, setFeaturedBooks] = useState([]);
+
+  const fetchNotes = async () => {
+    try {
+      const response = await axios.get('http://localhost:4000/api/contributer/books');
+      setFeaturedBooks(response.data.response);
+      console.log(response.data.response)
+    } catch (error) {
+      console.error('Error fetching featured books:', error);
     }
-  ];
+  };
+
+  useEffect(()=>{fetchNotes},[])
 
   // const myBooks = [
   //   {
@@ -149,22 +159,23 @@ export default function BookReaderDashboard() {
 ];
 
 
-  useEffect(() => {
-  const run = async () => {
-    if (activeTab !== 'browse') return;
+//   useEffect(() => {
+//   const run = async () => {
+//     if (activeTab !== 'browse') return;
 
-    try {
-      const list = await searchReaderBooks(searchQuery);
-      setBooks(list);
-      setError(null); // Clear any previous errors
-    } catch (err) {
-      setError(err.message || 'Search failed');
-      setBooks([]); // Optionally clear books on error
-    }
-  };
+//     try {
+//       const list = await searchReaderBooks(searchQuery);
+//       setBooks(list);
+     
+//       setError(null); // Clear any previous errors
+//     } catch (err) {
+//       setError(err.message || 'Search failed');
+//       setBooks([]); // Optionally clear books on error
+//     }
+//   };
 
-  run();
-}, [activeTab, searchQuery]); // added searchQuery as dependency
+//   run();
+// }, [activeTab, searchQuery]); // added searchQuery as dependency
 
 
   const Sidebar = () => (
@@ -280,7 +291,7 @@ export default function BookReaderDashboard() {
     <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] border border-gray-100">
       <div className="aspect-w-3 aspect-h-4 relative">
         <img 
-          src={book.image} 
+          src={`data:image/jpeg;base64,${book.coverImage}`} 
           alt={book.title}
           className="w-full h-full  object-cover rounded-t-xl"
         />
@@ -323,7 +334,7 @@ export default function BookReaderDashboard() {
             <div className="h-6 w-6 bg-green-100 rounded-full flex items-center justify-center">
               <User className="h-3 w-3 text-green-600" />
             </div>
-            <span className="text-sm text-gray-700">{book.owner}</span>
+            <span className="text-sm text-gray-700">{book.title}</span>
             <div className="flex items-center">
               <Star className="h-3 w-3 text-yellow-400 fill-current" />
               <span className="text-xs text-gray-600 ml-1">{book.ownerRating}</span>
@@ -444,7 +455,7 @@ export default function BookReaderDashboard() {
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {featuredBooks.slice(0, 3).map(book => (
-                    <BookCard key={book.id} book={book} />
+                    <BookCard key={book._id} book={book} />
                   ))}
                 </div>
               </div>
@@ -480,7 +491,7 @@ export default function BookReaderDashboard() {
             {/* Books Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {featuredBooks.map(book => (
-                <BookCard key={book.id} book={book} />
+                <BookCard key={book._id} book={book} />
               ))}
             </div>
           </div>

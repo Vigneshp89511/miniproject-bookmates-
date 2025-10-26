@@ -2,10 +2,11 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-
+import multer from 'multer'
 import authRoutes from './routes/auth.js';
 import readerRoutes from './routes/reader.js';
 import contributorRoutes from './routes/contributor.js';
+import upbk from "./routes/uploadedbooks.js"
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.get('/health', (req, res) => {
 app.use('/api', authRoutes);
 app.use('/api', readerRoutes);
 app.use('/api', contributorRoutes);
+app.use('/api', upbk);
 
 const MONGODB_URI = process.env.MONGODB_URL;
 const PORT = process.env.PORT || 4000;
