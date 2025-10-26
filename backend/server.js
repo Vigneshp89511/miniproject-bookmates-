@@ -7,10 +7,18 @@ import authRoutes from './routes/auth.js';
 import readerRoutes from './routes/reader.js';
 import contributorRoutes from './routes/contributor.js';
 import upbk from "./routes/uploadedbooks.js"
+import path from 'path'
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
+ 
+ const __filename = fileURLToPath(import.meta.url);
+ const __dirname = path.dirname(__filename);
+
 const app = express();
+
+app.use(express.static(path.join(__dirname,"../frontend/dist")));
 
 app.use(cors());
 app.use(express.json());
