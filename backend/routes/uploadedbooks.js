@@ -69,7 +69,7 @@ upbk.post(
         description: description || "",
         coverImage: photo,
         termsAccepted,
-        owner:req.user._id, // from auth middleware
+        owner:req.user._id // from auth middleware
       });
 
       const savedBook = await newBook.save();
