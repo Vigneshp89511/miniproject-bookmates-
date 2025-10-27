@@ -10,6 +10,9 @@ import {
   Library,
   Book,
 } from "lucide-react";
+import ChooseDashboard from "./ChooseDashboard";
+import BookContributorDashboard from "./BookContributor";
+import Dashboard from "./dashboard";
 
 export default function BookExchangeAuth() {
   const [isSignIn, setIsSignIn] = useState(true);

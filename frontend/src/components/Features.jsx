@@ -1,5 +1,4 @@
 import { Search, Users, Gift, Shield, MapPin, Award } from "lucide-react";
-
 function Features() {
   const features = [
     {

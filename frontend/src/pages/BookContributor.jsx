@@ -9,7 +9,7 @@ import {
   Package, Edit, Trash2, Check, AlertCircle, BarChart3,
   Upload, Camera, Filter, Download, RefreshCw
 } from "lucide-react";
-
+import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom'
 import Logo from "../assets/LogoMakerCa-1759326904291.png";
 import Image1 from "../assets/Wings of Fire.jpg";
@@ -20,6 +20,7 @@ import Image4 from "../assets/Book4.jpg"
 import axios from "axios";
  
 export default function BookContributorDashboard() {
+  const [logDecode, setlogDecode] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showAddBookModal, setShowAddBookModal] = useState(false);
@@ -28,6 +29,7 @@ export default function BookContributorDashboard() {
   const [myBooks, setMyBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [tested, settested] = useState([]);
   // const [analytics, setAnalytics] = useState({ totalListings: 0, activeListings: 0, completedExchanges: 0, totalViews: 0, totalRequests: 0, averageRating: 0, earnings: 0 });
   // const [recentRequests, setRecentRequests] = useState([]);
 
@@ -69,44 +71,39 @@ export default function BookContributorDashboard() {
     console.log("hello3")
     console.log('Books:', response.data.response);
     setmyListings(response.data.response);
+    const token = getToken();
+if (token) {
+  try {
+    // 2. Decode the token payload
+    const decoded = jwtDecode(token);
+    
+    console.log(decoded)
+    // 3. The user ID is typically stored in a field like 'userId', 'sub', or '_id'
+    const user = decoded.id || decoded.sub || decoded._id; 
+    setlogDecode(decoded);
+    console.log('User ID from token:', user);
+    setMyBooks(response.data.response.filter(b =>(user  === b.owner)));
+    console.log(response.data.response.filter(b =>(user === b.owner)))
+    // You can now use userId for local operations or set it in state
+    // setUserId(userId); 
+
+  } catch (error) {
+    console.error('Invalid token, could not decode:', error);
+    // Handle error, e.g., log out the user
+  }
+}
+    
+  
   } catch (error) {
     console.error('Error fetching contributor books:', error);
     throw error;
   }
 };
 
- 
 
-  const recentRequests = [
-    {
-      id: 1,
-      bookTitle: "Wings of Fire",
-      requester: "Shakthi Vel K",
-      requesterRating: 4.9,
-      message: "I've been looking for this book! Would love to exchange...",
-      time: "2 hours ago",
-      status: "pending"
-    },
-    {
-      id: 2,
-      bookTitle: "Data Structures and Algorithms made easy",
-      requester: "Revanth",
-      requesterRating: 4.7,
-      message: "Thanks for offering this for donation!",
-      time: "5 hours ago",
-      status: "pending"
-    },
-    {
-      id: 3,
-      bookTitle: "Compter Networking A Top-Down Approach",
-      requester: "Sanket",
-      requesterRating: 5.0,
-      message: "Is this still available? Happy to pay asking price.",
-      time: "1 day ago",
-      status: "accepted"
-    }
-  ];
+ const [recentRequests, setRecentRequests] = useState([]);
 
+   
   const analytics = {
     totalListings: 12,
     activeListings: 8,
@@ -152,7 +149,7 @@ export default function BookContributorDashboard() {
         <div className="space-y-2">
           {[
             { id: 'dashboard', label: 'Dashboard', icon: Home },
-            { id: 'listings', label: 'My Listings', icon: Library },
+            { id: 'listings', label: 'Explore', icon: Library },
             { id: 'requests', label: 'Requests', icon: MessageCircle, badge: recentRequests.length },
             { id: 'analytics', label: 'Analytics', icon: BarChart3 },
             { id: 'earnings', label: 'Earnings', icon: DollarSign },
@@ -207,7 +204,7 @@ export default function BookContributorDashboard() {
             </button>
             <h1 className="ml-2 lg:ml-0 text-2xl font-bold text-gray-900">
               {activeTab === 'dashboard' && 'Dashboard'}
-              {activeTab === 'listings' && 'My Listings'}
+              {activeTab === 'listings' && 'Explore'}
               {activeTab === 'requests' && 'Book Requests'}
               {activeTab === 'analytics' && 'Analytics'}
               {activeTab === 'earnings' && 'Earnings'}
@@ -343,7 +340,7 @@ const handleSubmit = async () => {
       Authorization: `Bearer ${token}`,
       "Content-Type": "multipart/form-data",
     },});
-    setMyBooks((prev) => [createdBook.data, ...prev]);
+    setMyBooks([createdBook]);
     handleClose();
   } catch (err) {
     setError(err.response?.data?.message || err.message || "Something went wrong");
@@ -351,6 +348,8 @@ const handleSubmit = async () => {
     setLoading(false);
   }
 };
+
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -570,38 +569,6 @@ const handleSubmit = async () => {
   const renderDashboard = () => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard 
-          icon={Library} 
-          title="Active Listings" 
-          value={analytics.activeListings}
-          subtitle={`${analytics.totalListings} total`}
-          color="bg-blue-500"
-          trend={12}
-        />
-        <StatsCard 
-          icon={Eye} 
-          title="Total Views" 
-          value={analytics.totalViews}
-          subtitle="This month"
-          color="bg-green-500"
-          trend={8}
-        />
-        <StatsCard 
-          icon={MessageCircle} 
-          title="Requests" 
-          value={analytics.totalRequests}
-          subtitle="Pending: 5"
-          color="bg-purple-500"
-          trend={15}
-        />
-        <StatsCard 
-          icon={DollarSign} 
-          title="Earnings" 
-          value={`${analytics.earnings}`}
-          subtitle="Lifetime"
-          color="bg-green-500"
-          trend={25}
-        />
       </div>
 
        {/* Recent Activity & Requests */}
@@ -654,38 +621,55 @@ const handleSubmit = async () => {
           <div className="p-6 border-b border-gray-100">
             <h2 className="text-xl font-bold text-gray-900 flex items-center">
               <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
-              Top Performing Books
+              MY Books
             </h2>
           </div>
           <div className="p-6">
-            <div className="space-y-4">
-              {myListings.map((book) => (
-                <div key={book.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                  <img 
-                    src={`data:image/jpeg;base64,${book.coverImage}`} 
-                    alt={book.title}
-                    className="w-12 h-16 object-cover rounded"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 truncate">{book.title}</h3>
-                    <p className="text-sm text-gray-500">by {book.author}</p>
-                    <div className="flex items-center space-x-4 mt-1">
-                      <div className="flex items-center text-xs text-gray-500">
-                        <Eye className="h-3 w-3 mr-1" />
-                        {book.views}
-                      </div>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <MessageCircle className="h-3 w-3 mr-1" />
-                        {book.requests}
-                      </div>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <Heart className="h-3 w-3 mr-1" />
-                        {book.favorites}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {  
+                myListings
+                  .filter(b => myBooks.some(m => m._id === b._id))
+                  .map((book) => (
+                    <div
+                      key={book._id}
+                      className="bg-white rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-all duration-200"
+                    >
+                      {/* Larger image full width with text below */}
+                      <img
+                        src={`data:image/jpeg;base64,${book.coverImage}`}
+                        alt={book.title}
+                        className="w-full h-40 md:h-48 object-cover"
+                      />
+
+                      <div className="p-4">
+                        <h3 className="font-medium text-gray-900 text-sm md:text-base truncate">{book.title}</h3>
+                        <p className="text-xs md:text-sm text-gray-500 mt-1">by {book.author}</p>
+
+                        <div className="flex items-center justify-between mt-3">
+                          <div className="flex items-center space-x-3 text-xs text-gray-500">
+                            <div className="flex items-center">
+                              <Eye className="h-4 w-4 mr-1" />
+                              <span>{book.views}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <MessageCircle className="h-4 w-4 mr-1" />
+                              <span>{book.requests}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <Heart className="h-4 w-4 mr-1" />
+                              <span>{book.favorites}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-2">
+                            <button className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded-md">Edit</button>
+                            <button className="px-2 py-1 text-xs border border-gray-300 rounded-md">Share</button>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ))}
+                ))
+              }
             </div>
           </div>
         </div>
@@ -888,34 +872,6 @@ const handleSubmit = async () => {
   const renderAnalytics = () => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard 
-          icon={Eye} 
-          title="Total Views" 
-          value={analytics.totalViews}
-          subtitle="All time"
-          color="bg-blue-500"
-        />
-        <StatsCard 
-          icon={Heart} 
-          title="Total Favorites" 
-          value="89"
-          subtitle="Across all books"
-          color="bg-red-500"
-        />
-        <StatsCard 
-          icon={Users} 
-          title="Unique Visitors" 
-          value="1,234"
-          subtitle="This month"
-          color="bg-purple-500"
-        />
-        <StatsCard 
-          icon={TrendingUp} 
-          title="Success Rate" 
-          value="87%"
-          subtitle="Completed exchanges"
-          color="bg-green-500"
-        />
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -930,30 +886,11 @@ const handleSubmit = async () => {
     </div>
   );
 
+const [earnings, setEarnings] = useState([]);
   const renderEarnings = () => (
+   
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatsCard 
-          icon={DollarSign} 
-          title="Total Earnings" 
-          value={`${analytics.earnings}`}
-          subtitle="All time"
-          color="bg-green-500"
-        />
-        <StatsCard 
-          icon={TrendingUp} 
-          title="This Month" 
-          value="250.50"
-          subtitle="+23% from last month"
-          color="bg-blue-500"
-        />
-        <StatsCard 
-          icon={Package} 
-          title="Books Sold" 
-          value="12"
-          subtitle="Completed sales"
-          color="bg-purple-500"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">    
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
@@ -977,11 +914,7 @@ const handleSubmit = async () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {[
-                { date: '2024-02-15', book: 'Atomic Habits', type: 'Sale', amount: '250.99', status: 'Completed' },
-                { date: '2024-02-10', book: 'The Midnight Library', type: 'Sale', amount: '150.50', status: 'Completed' },
-                { date: '2024-02-05', book: 'Project Hail Mary', type: 'Sale', amount: '100.00', status: 'Completed' }
-              ].map((transaction, index) => (
+              {earnings.map((transaction, index) => (
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm text-gray-900">{transaction.date}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{transaction.book}</td>

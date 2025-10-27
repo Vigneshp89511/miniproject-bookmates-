@@ -4,11 +4,10 @@ import Auth from './pages/Auth'
 import Dashboard from './pages/dashboard'
 import BookContributorDashboard from './pages/BookContributor'
 import ChooseDashboard from './pages/ChooseDashboard'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import {  Route, Routes } from 'react-router-dom'
 
 const App = () => {
   return (
-    <Router>
       <Routes>
         <Route path='/' element={<Home />} />
         <Route path='/auth' element={<Auth />} />
@@ -16,7 +15,6 @@ const App = () => {
         <Route path='/book-contributor' element={<BookContributorDashboard />} />
         <Route path='/choose-dashboard' element={<ChooseDashboard />} />
       </Routes>
-    </Router>
   )
 }
 
