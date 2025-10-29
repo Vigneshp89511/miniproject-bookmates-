@@ -571,16 +571,187 @@ const handleSubmit = async () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       </div>
 
-       {/* Recent Activity & Requests */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Requests */}
+      {/* MY Books - Top horizontal scrollable list */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xl font-bold text-gray-900 flex items-center">
+            <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
+            MY Books
+          </h2>
+          <div className="flex items-center space-x-2">
+            <button className="text-sm px-3 py-1 bg-amber-100 text-amber-700 rounded-md">Manage</button>
+            <button onClick={() => setShowAddBookModal(true)} className="text-sm px-3 py-1 bg-amber-600 text-white rounded-md">Add Book</button>
+          </div>
+        </div>
+
+        <div
+          className="overflow-x-auto -mx-4 px-4 pb-4 snap-x snap-mandatory scroll-smooth"
+          aria-label="My books carousel"
+        >
+          <div className="flex space-x-4">
+            { myBooks
+              .map((book) => (
+                <div
+                  key={book._id}
+                  className="min-w-[220px] md:min-w-[260px] lg:min-w-[300px] bg-white rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-all duration-200 snap-start flex-shrink-0"
+                >
+                  <div className="w-full h-40 md:h-48 overflow-hidden bg-gray-100">
+                    <img
+                      src={`data:image/jpeg;base64,${book.coverImage}`}
+                      alt={book.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  <div className="p-3">
+                    <h3 className="font-medium text-gray-900 text-sm md:text-base truncate">{book.title}</h3>
+                    <p className="text-xs md:text-sm text-gray-500 mt-1">by {book.author}</p>
+
+                    <div className="flex items-center justify-between mt-3">
+                      <div className="flex items-center space-x-3 text-xs text-gray-500">
+                        <div className="flex items-center">
+                          <Eye className="h-4 w-4 mr-1" />
+                          <span>{book.views ?? 0}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <MessageCircle className="h-4 w-4 mr-1" />
+                          <span>{book.requests ?? 0}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Heart className="h-4 w-4 mr-1" />
+                          <span>{book.favorites ?? 0}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <button className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded-md">Edit</button>
+                        <button className="px-2 py-1 text-xs border border-gray-300 rounded-md">Share</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            ))}
+
+            {/* if no books show placeholder card */}
+            {myListings.filter(b => myBooks.some(m => m._id === b._id)).length === 0 && (
+              <div className="min-w-[220px] md:min-w-[260px] lg:min-w-[300px] bg-gray-50 rounded-lg border border-dashed border-gray-200 flex items-center justify-center p-6 snap-start flex-shrink-0">
+                <div className="text-center">
+                  <p className="text-sm text-gray-500">No books yet</p>
+                  <button onClick={() => setShowAddBookModal(true)} className="mt-3 px-3 py-1 bg-amber-600 text-white rounded-md text-sm">Add your first book</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 ">
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center">
+              <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
+              Explore
+            </h2>
+            <button 
+              onClick={() => setActiveTab('listings')}
+              className="flex items-center text-green-600 hover:text-green-700 font-medium text-sm transition-colors duration-200"
+            >
+              View All <ChevronRight className="h-4 w-4 ml-1" />
+            </button>
+          </div>
+        </div>
+
+        {/* Make Explore listings use same horizontal carousel/tailwind styling */}
+        <div className="overflow-x-auto  snap-x snap-mandatory scroll-smooth" aria-label="Explore books carousel">
+          <div className="flex space-x-4 h-full">
+            {myListings
+            .filter(b => (logDecode.id != b.owner))
+            .map((book) => (
+              <div 
+                key={book._id}
+                className="min-w-[120px] md:min-w-[260px] lg:min-w-[300px] bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] border border-gray-100 w-65 h-90 flex-shrink-0 snap-start m-5 "
+              >
+                <div className="w-80  h-40 overflow-hidden rounded-t-xl bg-gray-100 relative ">
+                  <img 
+                    src={`data:image/jpeg;base64,${book.coverImage}`} 
+                    alt={book.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-2 right-2">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      book.exchangeType === 'Exchange' ? 'bg-blue-100 text-blue-800' :
+                      book.exchangeType === 'Donate' ? 'bg-green-100 text-green-800' :
+                      'bg-purple-100 text-purple-800'
+                    }`}>
+                      {book.exchangeType}
+                    </span>
+                  </div>
+                  <div className="absolute top-2 left-2">
+                    <button className="p-1 bg-white bg-opacity-80 rounded-full hover:bg-opacity-100 transition-all duration-200">
+                      <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="p-4">
+                  <h3 className="font-bold text-lg text-gray-900 mb-1 line-clamp-2">{book.title}</h3>
+                  <p className="text-gray-600 text-sm mb-2">by {book.author}</p>
+                  
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="flex items-center">
+                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                      <span className="text-sm font-medium text-gray-700 ml-1">{book.rating}</span>
+                    </div>
+                    <span className="text-gray-400">•</span>
+                    <span className="text-sm text-gray-600">{book.reviews} reviews</span>
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-gray-600 mb-3">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    <span>{book.location}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <div className="flex items-center space-x-2">
+                      <div className="h-6 w-6 bg-green-100 rounded-full flex items-center justify-center">
+                        <User className="h-3 w-3 text-green-600" />
+                      </div>
+                      <span className="text-sm text-gray-700">{book.title}</span>
+                      <div className="flex items-center">
+                        <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                        <span className="text-xs text-gray-600 ml-1">{book.ownerRating}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-1">
+                      <button className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200">
+                        <Share2 className="h-4 w-4" />
+                      </button>
+                      <button className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200">
+                        <MessageCircle className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <button className="w-full mt-3 bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors duration-200">
+                    Request Book
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Requests - Below the horizontal list */}
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="p-6 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-900 flex items-center">
               <MessageCircle className="h-5 w-5 mr-2 text-amber-600" />
               Recent Requests
             </h2>
-            <button 
+            <button
               onClick={() => setActiveTab('requests')}
               className="text-amber-600 hover:text-amber-700 text-sm font-medium"
             >
@@ -613,67 +784,18 @@ const handleSubmit = async () => {
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="p-6 border-b border-gray-100">
-            <h2 className="text-xl font-bold text-gray-900 flex items-center">
-              <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
-              MY Books
-            </h2>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {  
-                myListings
-                  .filter(b => myBooks.some(m => m._id === b._id))
-                  .map((book) => (
-                    <div
-                      key={book._id}
-                      className="bg-white rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-all duration-200"
-                    >
-                      {/* Larger image full width with text below */}
-                      <img
-                        src={`data:image/jpeg;base64,${book.coverImage}`}
-                        alt={book.title}
-                        className="w-full h-40 md:h-48 object-cover"
-                      />
-
-                      <div className="p-4">
-                        <h3 className="font-medium text-gray-900 text-sm md:text-base truncate">{book.title}</h3>
-                        <p className="text-xs md:text-sm text-gray-500 mt-1">by {book.author}</p>
-
-                        <div className="flex items-center justify-between mt-3">
-                          <div className="flex items-center space-x-3 text-xs text-gray-500">
-                            <div className="flex items-center">
-                              <Eye className="h-4 w-4 mr-1" />
-                              <span>{book.views}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <MessageCircle className="h-4 w-4 mr-1" />
-                              <span>{book.requests}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <Heart className="h-4 w-4 mr-1" />
-                              <span>{book.favorites}</span>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center space-x-2">
-                            <button className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded-md">Edit</button>
-                            <button className="px-2 py-1 text-xs border border-gray-300 rounded-md">Share</button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                ))
-              }
+              {recentRequests.length === 0 && (
+                <div className="p-6 text-center text-sm text-gray-500">
+                  No recent requests.
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+    
 
       <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-xl p-6 text-white">
         <div className="flex flex-col md:flex-row items-center justify-between">
@@ -681,7 +803,7 @@ const handleSubmit = async () => {
             <h3 className="text-2xl font-bold mb-2">Ready to share more books?</h3>
             <p className="text-blue-100">Add new listings and reach more readers in your community</p>
           </div>
-          <button 
+          <button
             onClick={() => setShowAddBookModal(true)}
             className="bg-white text-blue-600 px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors duration-200 flex items-center"
           >
@@ -693,113 +815,117 @@ const handleSubmit = async () => {
     </div>
   );
 
-   const renderListings = () => (
-    <div className="space-y-6">
-      {/* Filter Bar */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-          <div className="flex items-center space-x-4">
-            <Filter className="h-5 w-5 text-gray-400" />
-            <select className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
-              <option>All Status</option>
-              <option>Active</option>
-              <option>Pending</option>
-              <option>Completed</option>
-            </select>
-            <select className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
-              <option>All Types</option>
-              <option>Exchange</option>
-              <option>Donate</option>
-              <option>Sell</option>
-            </select>
-          </div>
-          
-          <button 
-            onClick={() => setShowAddBookModal(true)}
-            className="bg-amber-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-amber-700 transition-colors duration-200 flex items-center justify-center"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Book
-          </button>
-        </div>
+  const renderListings = () => (
+   <div className="space-y-6">
+    {/* Filter Bar */}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+       <div className="flex items-center space-x-4">
+        <Filter className="h-5 w-5 text-gray-400" />
+        <select className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
+          <option>All Status</option>
+          <option>Active</option>
+          <option>Pending</option>
+          <option>Completed</option>
+        </select>
+        <select className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
+          <option>All Types</option>
+          <option>Exchange</option>
+          <option>Donate</option>
+          <option>Sell</option>
+        </select>
+       </div>
+       
+       <button 
+        onClick={() => setShowAddBookModal(true)}
+        className="bg-amber-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-amber-700 transition-colors duration-200 flex items-center justify-center"
+       >
+        <Plus className="h-4 w-4 mr-2" />
+        Add Book
+       </button>
       </div>
+    </div>
 
-      {/* Listings Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {myListings.map((book) => (
-          <div key={book.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
-            <div className="relative">
-              <img 
-                src={`data:image/jpeg;base64,${book.coverImage}`}
-                alt={book.title}
-                className="w-full h-64 object-cover rounded-t-xl"
-              />
-              <div className="absolute top-3 right-3 flex items-center space-x-2">
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  book.status === 'Active' ? 'bg-green-100 text-green-800' :
-                  book.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {book.status}
-                </span>
-              </div>
-              <div className="absolute top-3 left-3">
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  book.exchangeType === 'Exchange' ? 'bg-blue-100 text-blue-800' :
-                  book.exchangeType === 'Donate' ? 'bg-green-100 text-green-800' :
-                  'bg-purple-100 text-purple-800'
-                }`}>
-                  {book.exchangeType}
-                </span>
-              </div>
+    {/* Listings Grid */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {myListings
+      .filter(b => (logDecode.id != b.owner))
+      .map((book) => (
+        <div 
+         key={book._id}
+         className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] border border-gray-100 w-full max-w-sm mx-auto"
+        >
+            {/* fixed image area so every card has same image width & height */}
+            <div className="w-full h-56 overflow-hidden rounded-t-xl bg-gray-100">
+             <img 
+              src={`data:image/jpeg;base64,${book.coverImage}`} 
+              alt={book.title}
+              className="w-full h-full object-cover"
+             />
+             <div className="absolute top-2 right-2">
+              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                book.exchangeType === 'Exchange' ? 'bg-blue-100 text-blue-800' :
+                book.exchangeType === 'Donate' ? 'bg-green-100 text-green-800' :
+                'bg-purple-100 text-purple-800'
+              }`}>
+                {book.exchangeType}
+              </span>
+             </div>
+             <div className="absolute top-2 left-2">
+              <button className="p-1 bg-white bg-opacity-80 rounded-full hover:bg-opacity-100 transition-all duration-200">
+                <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
+              </button>
+             </div>
             </div>
             
             <div className="p-4">
-              <h3 className="font-bold text-lg text-gray-900 mb-1 line-clamp-2">{book.title}</h3>
-              <p className="text-gray-600 text-sm mb-3">by {book.author}</p>
-              
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className="text-center">
-                  <div className="flex items-center justify-center text-gray-600 mb-1">
-                    <Eye className="h-4 w-4" />
-                  </div>
-                  <p className="text-sm font-bold text-gray-900">{book.views}</p>
-                  <p className="text-xs text-gray-500">Views</p>
+             <h3 className="font-bold text-lg text-gray-900 mb-1 line-clamp-2">{book.title}</h3>
+             <p className="text-gray-600 text-sm mb-2">by {book.author}</p>
+             
+             <div className="flex items-center space-x-2 mb-2">
+              <div className="flex items-center">
+                <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                <span className="text-sm font-medium text-gray-700 ml-1">{book.rating}</span>
+              </div>
+              <span className="text-gray-400">•</span>
+              <span className="text-sm text-gray-600">{book.reviews} reviews</span>
+             </div>
+             
+             <div className="flex items-center text-sm text-gray-600 mb-3">
+              <MapPin className="h-4 w-4 mr-1" />
+              <span>{book.location}</span>
+             </div>
+             
+             <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+              <div className="flex items-center space-x-2">
+                <div className="h-6 w-6 bg-green-100 rounded-full flex items-center justify-center">
+                 <User className="h-3 w-3 text-green-600" />
                 </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center text-gray-600 mb-1">
-                    <MessageCircle className="h-4 w-4" />
-                  </div>
-                  <p className="text-sm font-bold text-gray-900">{book.requests}</p>
-                  <p className="text-xs text-gray-500">Requests</p>
-                </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center text-gray-600 mb-1">
-                    <Heart className="h-4 w-4" />
-                  </div>
-                  <p className="text-sm font-bold text-gray-900">{book.favorites}</p>
-                  <p className="text-xs text-gray-500">Favorites</p>
+                <span className="text-sm text-gray-700">{book.title}</span>
+                <div className="flex items-center">
+                 <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                 <span className="text-xs text-gray-600 ml-1">{book.ownerRating}</span>
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2 pt-3 border-t border-gray-100">
-                <button className="flex-1 flex items-center justify-center px-3 py-2 bg-amber-100 text-amber-700 rounded-lg text-sm font-medium hover:bg-amber-200 transition-colors duration-200">
-                  <Edit className="h-4 w-4 mr-1" />
-                  Edit
+              <div className="flex items-center space-x-1">
+                <button className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200">
+                 <Share2 className="h-4 w-4" />
                 </button>
-                <button className="flex-1 flex items-center justify-center px-3 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors duration-200">
-                  <Share2 className="h-4 w-4 mr-1" />
-                  Share
-                </button>
-                <button className="px-3 py-2 border border-red-300 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors duration-200">
-                  <Trash2 className="h-4 w-4" />
+                <button className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200">
+                 <MessageCircle className="h-4 w-4" />
                 </button>
               </div>
+             </div>
+             
+             <button className="w-full mt-3 bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors duration-200">
+              Request Book
+             </button>
             </div>
           </div>
-        ))}
-      </div>
+      ))}
     </div>
+   </div>
   );
 
   const renderRequests = () => (
