@@ -20,7 +20,16 @@ const app = express();
 
 app.use(express.static(path.join(__dirname,"../frontend/dist")));
 
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:4000",
+      "http://localhost:5173",
+      "https://bookmates-31ak.onrender.com", // your deployed frontend URL
+    ],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.get('/health', (req, res) => {
