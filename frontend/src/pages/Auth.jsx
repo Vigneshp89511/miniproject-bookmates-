@@ -12,7 +12,11 @@ import {
   Book,
 } from "lucide-react";
 
-const API_BASE_URL = "http://localhost:4000/api" || "https://bookmates-31ak.onrender.com/api";
+
+const API_BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:4000/api"
+    : "https://bookmates-31ak.onrender.com/api";
 
 export default function BookExchangeAuth() {
   const [isSignIn, setIsSignIn] = useState(true);

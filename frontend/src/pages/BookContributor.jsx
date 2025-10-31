@@ -62,12 +62,15 @@ export default function BookContributorDashboard() {
 
   // Sample data
   const [myListings,setmyListings] =  useState([])
-
+  const API_BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:4000/api"
+    : "https://bookmates-31ak.onrender.com/api";
   // get info
   const fetchContributorBooks = async () => {
   try {
     console.log("hello2")
-    const response = await axios.get('http://localhost:4000/api/contributer/books' || 'https://bookmates-31ak.onrender.com/api/contributer/books'); // or full URL if needed
+    const response = await axios.get(`${API_BASE_URL}/contributer/books`); // or full URL if needed
     console.log("hello3")
     console.log('Books:', response.data.response);
     setmyListings(response.data.response);
@@ -335,7 +338,7 @@ const handleSubmit = async () => {
 
     // Axios POST request
     const token = getToken()
-    const createdBook = await axios.post("http://localhost:4000/api/contributer/books" || "https://bookmates-31ak.onrender.com/api/contributer/books", formData, {
+    const createdBook = await axios.post(`${API_BASE_URL}/contributer/books`, formData, {
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "multipart/form-data",
