@@ -51,6 +51,7 @@ upbk.post(
         exchangeDuration,
         price,
         description,
+        getotp,
         termsAccepted,
       } = req.body;
 
@@ -68,6 +69,7 @@ upbk.post(
         price: price || null,
         description: description || "",
         coverImage: photo,
+        getotp,
         termsAccepted,
         owner:req.user._id // from auth middleware
       });

@@ -8,8 +8,11 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, trim: true, lowercase: true },
     password: { type: String, required: true, minlength: 6 },
-    accountType: { type: String, enum: ACCOUNT_TYPES, required: true },
     favoriteGenre: { type: String, default: '' },
+    getotp: { type: String, default: '' },
+    setgetotp: { type: String, default: '' },
+    otpExpiry: Date,
+    isVerified: Boolean
   },
   { timestamps: true }
 );
