@@ -62,7 +62,7 @@ export default function BookExchangeAuth() {
       setToken(resp.token);
       setUser(resp.user);
       // Redirect or update app state here
-      
+      window.location.href = "/book-contributor";
     } catch (err) {
       const errorMsg = err.response?.data?.message || err.message || "Login failed";
       setError(errorMsg);
