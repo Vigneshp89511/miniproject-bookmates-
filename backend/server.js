@@ -55,7 +55,7 @@ mongoose
     dbName: process.env.MONGODB_DB || undefined,
   })
   .then(() => {
-    app.listen(PORT, () => {
+    app.listen(PORT || 10000, () => {
       // eslint-disable-next-line no-console
       console.log(`Server running on port ${PORT}`);
     });
