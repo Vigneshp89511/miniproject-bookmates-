@@ -47,12 +47,7 @@ return (
         </nav>
 
         <div className="hidden md:flex items-center space-x-4">
-          <Link
-            to="/auth"
-            className="text-gray-700 hover:text-green-600 font-medium transition-colors duration-200"
-          >
-            Sign In
-          </Link>
+           
           <Link
             to="/auth"
             className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition-all duration-200 transform hover:scale-105"

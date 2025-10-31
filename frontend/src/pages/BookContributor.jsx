@@ -67,7 +67,7 @@ export default function BookContributorDashboard() {
   const fetchContributorBooks = async () => {
   try {
     console.log("hello2")
-    const response = await axios.get('http://localhost:4000/api/contributer/books'); // or full URL if needed
+    const response = await axios.get('http://localhost:4000/api/contributer/books' || 'https://bookmates-31ak.onrender.com/api/contributer/books'); // or full URL if needed
     console.log("hello3")
     console.log('Books:', response.data.response);
     setmyListings(response.data.response);
@@ -125,7 +125,7 @@ if (token) {
           <span className="text-2xl font-bold text-gray-900">BookMates</span>
         </div>
         <button onClick={() => setSidebarOpen(false)} className="lg:hidden">
-          <X className="h-6 w-6 text-gray-500" />
+          <X className="h-6 w-6 absolute top-4 right-3  text-gray-500" />
         </button>
       </div>
       
@@ -335,7 +335,7 @@ const handleSubmit = async () => {
 
     // Axios POST request
     const token = getToken()
-    const createdBook = await axios.post("http://localhost:4000/api/contributer/books", formData, {
+    const createdBook = await axios.post("http://localhost:4000/api/contributer/books" || "https://bookmates-31ak.onrender.com/api/contributer/books", formData, {
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "multipart/form-data",
