@@ -48,16 +48,16 @@ app.use('/api', upbk);
  
 
 const MONGODB_URI = process.env.MONGODB_URL;
-const PORT = process.env.PORT || 4000;
+const port = process.env.PORT || 4000;
 
 mongoose
   .connect(MONGODB_URI, {
     dbName: process.env.MONGODB_DB || undefined,
   })
   .then(() => {
-    app.listen(PORT || 10000, () => {
+    app.listen(port, () => {
       // eslint-disable-next-line no-console
-      console.log(`Server running on port ${PORT}`);
+      console.log(`Server running on port ${port}`);
     });
   })
   .catch((err) => {
