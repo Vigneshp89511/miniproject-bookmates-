@@ -14,9 +14,9 @@ import {
 
 
 const API_BASE_URL =
-  // window.location.hostname === "localhost"
-  //   ? "http://localhost:4000/api" :
-     "https://bookmates-31ak.onrender.com/api";
+  window.location.hostname === "localhost"
+    ? "http://localhost:4000/api"
+    : "https://bookmates-31ak.onrender.com/api";
     
 
 export default function BookExchangeAuth() {

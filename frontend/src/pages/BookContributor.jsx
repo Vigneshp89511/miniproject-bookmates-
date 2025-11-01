@@ -63,9 +63,9 @@ export default function BookContributorDashboard() {
   // Sample data
   const [myListings,setmyListings] =  useState([])
   const API_BASE_URL =
-  // window.location.hostname === "localhost"
-  //   ? "http://localhost:4000/api" :
-  "https://bookmates-31ak.onrender.com/api";
+  window.location.hostname === "localhost"
+    ? "http://localhost:4000/api"
+    : "https://bookmates-31ak.onrender.com/api";
   // get info
   const fetchContributorBooks = async () => {
   try {
