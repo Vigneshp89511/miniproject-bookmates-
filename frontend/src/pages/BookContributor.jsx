@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useRef } from "react";
+ import React, { useEffect, useState, useRef } from "react";
 import { getToken, getUser, logout } from "../lib/api";
 import { listMyBooks, createMyBook, deleteMyBook, getContributorAnalytics, getContributorRequests } from "../lib/api";
 import { 
@@ -24,14 +24,14 @@ export default function BookContributorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showAddBookModal, setShowAddBookModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingBook, setEditingBook] = useState(null);
   const [exchangeType, setExchangeType] = useState('');
   const [user, setUser] = useState(null);
   const [myBooks, setMyBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [tested, settested] = useState([]);
-  // const [analytics, setAnalytics] = useState({ totalListings: 0, activeListings: 0, completedExchanges: 0, totalViews: 0, totalRequests: 0, averageRating: 0, earnings: 0 });
-  // const [recentRequests, setRecentRequests] = useState([]);
 
   useEffect(() => {
     const token = getToken();
@@ -60,53 +60,41 @@ export default function BookContributorDashboard() {
     })();
   }, []);
 
-  // Sample data
-  const [myListings,setmyListings] =  useState([])
+  const [myListings, setmyListings] = useState([])
   const API_BASE_URL =
-  window.location.hostname === "localhost"
+  window.location.hostname.includes("localhost")
     ? "http://localhost:4000/api"
     : "https://bookmates-31ak.onrender.com/api";
-  // get info
+
   const fetchContributorBooks = async () => {
-  try {
-    console.log("hello2")
-    const response = await axios.get(`${API_BASE_URL}/contributer/books`); // or full URL if needed
-    console.log("hello3")
-    console.log('Books:', response.data.response);
-    setmyListings(response.data.response);
-    const token = getToken();
-if (token) {
-  try {
-    // 2. Decode the token payload
-    const decoded = jwtDecode(token);
-    
-    console.log(decoded)
-    // 3. The user ID is typically stored in a field like 'userId', 'sub', or '_id'
-    const user = decoded.id || decoded.sub || decoded._id; 
-    setlogDecode(decoded);
-    console.log('User ID from token:', user);
-    setMyBooks(response.data.response.filter(b =>(user  === b.owner)));
-    console.log(response.data.response.filter(b =>(user === b.owner)))
-    // You can now use userId for local operations or set it in state
-    // setUserId(userId); 
+    try {
+      console.log("hello2")
+      const response = await axios.get(`${API_BASE_URL}/contributer/books`);
+      console.log("hello3")
+      console.log('Books:', response.data.response);
+      setmyListings(response.data.response);
+      const token = getToken();
+      if (token) {
+        try {
+          const decoded = jwtDecode(token);
+          console.log(decoded)
+          const user = decoded.id || decoded.sub || decoded._id; 
+          setlogDecode(decoded);
+          console.log('User ID from token:', user);
+          setMyBooks(response.data.response.filter(b => (user === b.owner)));
+          console.log(response.data.response.filter(b => (user === b.owner)))
+        } catch (error) {
+          console.error('Invalid token, could not decode:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching contributor books:', error);
+      throw error;
+    }
+  };
 
-  } catch (error) {
-    console.error('Invalid token, could not decode:', error);
-    // Handle error, e.g., log out the user
-  }
-}
-    
-  
-  } catch (error) {
-    console.error('Error fetching contributor books:', error);
-    throw error;
-  }
-};
+  const [recentRequests, setRecentRequests] = useState([]);
 
-
- const [recentRequests, setRecentRequests] = useState([]);
-
-   
   const analytics = {
     totalListings: 12,
     activeListings: 8,
@@ -117,8 +105,100 @@ if (token) {
     earnings: 156.50
   };
 
+  const handleEditClick = (book) => {
+    setEditingBook(book);
+    setExchangeType(book.exchangeType);
+    setShowEditModal(true);
+  };
 
+  const handleCloseEdit = () => {
+    setShowEditModal(false);
+    setEditingBook(null);
+    setExchangeType("exchange");
+    setError("");
+  };
 
+  const handleUpdate = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const title = document.querySelector("#edit-title")?.value || "";
+      const author = document.querySelector("#edit-author")?.value || "";
+      const genre = document.querySelector("#edit-genre")?.value || "";
+      const condition = document.querySelector("#edit-condition")?.value || "";
+      const description = document.querySelector("#edit-description")?.value || "";
+      const exchangeDuration = document.querySelector("#edit-duration")?.value || "";
+      const price = document.querySelector("#edit-price")?.value || "";
+
+      if (!title || !author || !genre || !condition || !exchangeType) {
+        setError("Please fill all required fields");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("author", author);
+      formData.append("genre", genre);
+      formData.append("condition", condition);
+      formData.append("exchangeType", exchangeType);
+      formData.append("description", description);
+      formData.append("termsAccepted", true);
+
+      if (exchangeType === "exchange") formData.append("exchangeDuration", exchangeDuration);
+      if (exchangeType === "sell") formData.append("price", price);
+
+      const fileInput = document.querySelector("#edit-cover-image");
+      if (fileInput?.files[0]) {
+        formData.append("coverImage", fileInput.files[0]);
+      }
+
+      const token = getToken();
+      const response = await axios.put(
+        `${API_BASE_URL}/contributer/books/${editingBook._id}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setMyBooks(myBooks.map(book => 
+        book._id === editingBook._id ? response.data : book
+      ));
+
+      handleCloseEdit();
+      alert("Book updated successfully!");
+      window.location.reload();
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || "Failed to update book");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (book) => {
+    try {
+      setLoading(true);
+      const token = getToken();
+      console.log('Deleting book with ID:', book._id);
+      if (window.confirm("Do you really want to delete this book? If YES click OK")) {
+        await axios.delete(
+          `${API_BASE_URL}/contributer/books/${book._id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+      }
+      window.location.reload();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete book");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const Sidebar = () => (
     <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:relative lg:flex lg:flex-col`}>
@@ -128,10 +208,10 @@ if (token) {
           <span className="text-2xl font-bold text-gray-900">BookMates</span>
         </div>
         <button onClick={() => setSidebarOpen(false)} className="lg:hidden">
-          <X className="h-6 w-6 absolute top-4 right-3  text-gray-500" />
+          <X className="h-6 w-6 absolute top-4 right-3 text-gray-500" />
         </button>
       </div>
-      
+
       <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 border-b border-gray-200">
         <div className="flex items-center space-x-3">
           <div className="h-12 w-12 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center">
@@ -147,7 +227,7 @@ if (token) {
           </div>
         </div>
       </div>
-      
+
       <nav className="mt-6 px-4 flex-1 overflow-y-auto">
         <div className="space-y-2">
           {[
@@ -169,7 +249,7 @@ if (token) {
                 <item.icon className="h-5 w-5" />
                 <span className="font-medium">{item.label}</span>
               </div>
-              {item.badge && (
+              {item.badge > 0 && (
                 <span className="bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                   {item.badge}
                 </span>
@@ -177,7 +257,7 @@ if (token) {
             </button>
           ))}
         </div>
-        
+
         <div className="mt-8 pt-8 border-t border-gray-200">
           <div className="space-y-2">
             <button className="w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200">
@@ -214,10 +294,10 @@ if (token) {
               {activeTab === 'profile' && 'Profile'}
             </h1>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             {activeTab === 'listings' && (
-              <button 
+              <button
                 onClick={() => setShowAddBookModal(true)}
                 className="hidden sm:flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-all duration-200 transform hover:scale-105"
               >
@@ -225,12 +305,12 @@ if (token) {
                 <span>Add Book</span>
               </button>
             )}
-            
+
             <button className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors duration-200">
               <Bell className="h-6 w-6" />
               <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
             </button>
-            
+
             <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center">
               <User className="h-5 w-5 text-white" />
             </div>
@@ -259,322 +339,545 @@ if (token) {
     </div>
   );
 
-const AddBookModal = () => {
-  const navigate = useNavigate();
+  const AddBookModal = () => {
+    const fileInputRef = useRef(null);
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [localExchangeType, setLocalExchangeType] = useState("");
+    const [localLoading, setLocalLoading] = useState(false);
+    const [localError, setLocalError] = useState("");
 
-  const fileInputRef = useRef(null);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [exchangeType, setExchangeType] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+    const handleImageSelect = (e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => setSelectedImage(reader.result);
+        reader.readAsDataURL(file);
+      }
+    };
 
-  // 🧠 Handle image selection
-  const handleImageSelect = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setSelectedImage(reader.result);
-      reader.readAsDataURL(file);
-    }
-  };
+    const handleCameraClick = () => {
+      fileInputRef.current?.click();
+    };
 
-  // 📸 Trigger camera or file selector
-  const handleCameraClick = () => {
-    fileInputRef.current?.click();
-  };
+    const handleDragOver = (e) => {
+      e.preventDefault();
+      setIsDragging(true);
+    };
 
-  // 🪣 Drag and Drop
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-  const handleDragLeave = () => setIsDragging(false);
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleImageSelect({ target: { files: [file] } });
-  };
- 
-const handleClose = ()=>{
-    window.location.reload()
-  
-}
+    const handleDragLeave = () => setIsDragging(false);
 
-  // 💾 Submit handler
-const handleSubmit = async () => {
-  try {
-    setLoading(true);
-    setError("");
+    const handleDrop = (e) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const file = e.dataTransfer.files[0];
+      if (file) handleImageSelect({ target: { files: [file] } });
+    };
 
-    const title = document.querySelector("#add-title")?.value || "";
-    const author = document.querySelector("#add-author")?.value || "";
-    const genre = document.querySelector("#add-genre")?.value || "";
-    const condition = document.querySelector("#add-condition")?.value || "";
-    const description = document.querySelector("#add-description")?.value || "";
-    const exchangeDuration = document.querySelector("#add-duration")?.value || "";
-    const price = document.querySelector("#add-price")?.value || "";
-    const termsAccepted = document.querySelector("#terms")?.checked || false;
-
-    if (!title || !author || !genre || !condition || !exchangeType) {
-      setError("Please fill all required fields and accept terms");
-      return;
+    const handleClose = () => {
+      window.location.reload()
     }
 
-    const formData = new FormData();
-    formData.append("title", title);
-    formData.append("author", author);
-    formData.append("genre", genre);
-    formData.append("condition", condition);
-    formData.append("exchangeType", exchangeType);
-    formData.append("description", description);
-    formData.append("termsAccepted", termsAccepted);
-    if (exchangeType === "exchange") formData.append("exchangeDuration", exchangeDuration);
-    if (exchangeType === "sell") formData.append("price", price);
-    if (fileInputRef.current?.files[0]) {
-      formData.append("coverImage", fileInputRef.current.files[0]);
-    }
+    const handleSubmit = async () => {
+      try {
+        setLocalLoading(true);
+        setLocalError("");
 
-    // Axios POST request
-    const token = getToken()
-    const createdBook = await axios.post(`${API_BASE_URL}/contributer/books`, formData, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "multipart/form-data",
-    },});
-    setMyBooks([createdBook]);
-    handleClose();
-  } catch (err) {
-    setError(err.response?.data?.message || err.message || "Something went wrong");
-  } finally {
-    setLoading(false);
-  }
-};
+        const title = document.querySelector("#add-title")?.value || "";
+        const author = document.querySelector("#add-author")?.value || "";
+        const genre = document.querySelector("#add-genre")?.value || "";
+        const condition = document.querySelector("#add-condition")?.value || "";
+        const description = document.querySelector("#add-description")?.value || "";
+        const exchangeDuration = document.querySelector("#add-duration")?.value || "";
+        const price = document.querySelector("#add-price")?.value || "";
+        const termsAccepted = document.querySelector("#terms")?.checked || false;
 
+        if (!title || !author || !genre || !condition || !localExchangeType) {
+          setLocalError("Please fill all required fields and accept terms");
+          return;
+        }
 
+        const formData = new FormData();
+        formData.append("title", title);
+        formData.append("author", author);
+        formData.append("genre", genre);
+        formData.append("condition", condition);
+        formData.append("exchangeType", localExchangeType);
+        formData.append("description", description);
+        formData.append("termsAccepted", termsAccepted);
+        if (localExchangeType === "exchange") formData.append("exchangeDuration", exchangeDuration);
+        if (localExchangeType === "sell") formData.append("price", price);
+        if (fileInputRef.current?.files[0]) {
+          formData.append("coverImage", fileInputRef.current.files[0]);
+        }
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">Add New Book</h2>
-          <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
-            <X className="h-6 w-6" />
-          </button>
-        </div>
+        const token = getToken()
+        const createdBook = await axios.post(`${API_BASE_URL}/contributer/books`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        setMyBooks([createdBook]);
+        handleClose();
+      } catch (err) {
+        setLocalError(err.response?.data?.message || err.message || "Something went wrong");
+      } finally {
+        setLocalLoading(false);
+      }
+    };
 
-        <div className="p-6 space-y-6">
-          {/* 📸 Book Cover */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Book Cover
-            </label>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={handleImageSelect}
-              className="hidden"
-            />
-            <div
-              onClick={handleCameraClick}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer ${
-                isDragging
-                  ? "border-green-500 bg-green-50"
-                  : selectedImage
-                  ? "border-gray-300 hover:border-gray-400"
-                  : "border-gray-300 hover:border-green-500"
-              }`}
-            >
-              {selectedImage ? (
-                <div className="relative">
-                  <img
-                    src={selectedImage}
-                    alt="Book cover preview"
-                    className="max-h-64 mx-auto rounded-lg"
-                  />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedImage(null);
-                    }}
-                    className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-200"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                  <p className="text-sm text-gray-500 mt-4">
-                    Click to change photo or drag and drop new one
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-2">
-                    {isDragging
-                      ? "Drop book photo here"
-                      : "Click to add book photo or drag and drop"}
-                  </p>
-                  <p className="text-sm text-gray-500">PNG, JPG up to 10MB</p>
-                </>
-              )}
-            </div>
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Add New Book</h2>
+            <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
+              <X className="h-6 w-6" />
+            </button>
           </div>
 
-          {/* 📚 Form Fields */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-6 space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Book Title *
+                Book Cover
               </label>
               <input
-                id="add-title"
-                type="text"
-                placeholder="Enter book title"
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleImageSelect}
+                className="hidden"
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Author *
-              </label>
-              <input
-                id="add-author"
-                type="text"
-                placeholder="Enter author name"
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Genre *
-              </label>
-              <select
-                id="add-genre"
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+              <div
+                onClick={handleCameraClick}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer ${
+                  isDragging
+                    ? "border-green-500 bg-green-50"
+                    : selectedImage
+                    ? "border-gray-300 hover:border-gray-400"
+                    : "border-gray-300 hover:border-green-500"
+                }`}
               >
-                <option value="">Select genre</option>
-                <option value="fiction">Fiction</option>
-                <option value="programming">Programming & Coding</option>
-                <option value="ai-ml">AI & Machine Learning</option>
-                <option value="data-science">Data Science</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Condition *
-              </label>
-              <select
-                id="add-condition"
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
-              >
-                <option value="">Select condition</option>
-                <option value="like-new">Like New</option>
-                <option value="good">Good</option>
-                <option value="acceptable">Acceptable</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Exchange Type *
-              </label>
-              <select
-                value={exchangeType}
-                onChange={(e) => setExchangeType(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
-              >
-                <option value="">Select type</option>
-                <option value="exchange">Exchange</option>
-                <option value="donate">Donate</option>
-                <option value="sell">Sell</option>
-              </select>
-            </div>
-
-            {exchangeType === "exchange" && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Exchange Duration *
-                </label>
-                <select
-                  id="add-duration"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="">Select duration</option>
-                  <option value="15">15 Days</option>
-                  <option value="30">30 Days</option>
-                  <option value="60">60 Days</option>
-                </select>
+                {selectedImage ? (
+                  <div className="relative">
+                    <img
+                      src={selectedImage}
+                      alt="Book cover preview"
+                      className="max-h-64 mx-auto rounded-lg"
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedImage(null);
+                      }}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-200"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                    <p className="text-sm text-gray-500 mt-4">
+                      Click to change photo or drag and drop new one
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-2">
+                      {isDragging
+                        ? "Drop book photo here"
+                        : "Click to add book photo or drag and drop"}
+                    </p>
+                    <p className="text-sm text-gray-500">PNG, JPG up to 10MB</p>
+                  </>
+                )}
               </div>
-            )}
+            </div>
 
-            {exchangeType === "sell" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Price *
+                  Book Title *
                 </label>
                 <input
-                  id="add-price"
-                  type="number"
-                  placeholder="0.00"
+                  id="add-title"
+                  type="text"
+                  placeholder="Enter book title"
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
                 />
               </div>
-            )}
-          </div>
 
-          {/* 📝 Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description
-            </label>
-            <textarea
-              id="add-description"
-              rows="4"
-              placeholder="Describe the book..."
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
-            ></textarea>
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Author *
+                </label>
+                <input
+                  id="add-author"
+                  type="text"
+                  placeholder="Enter author name"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+                />
+              </div>
 
-          {error && <p className="text-red-600 text-sm">{error}</p>}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Genre *
+                </label>
+                <select
+                  id="add-genre"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="">Select genre</option>
+                  <option value="fiction">Fiction</option>
+                  <option value="programming">Programming & Coding</option>
+                  <option value="ai-ml">AI & Machine Learning</option>
+                  <option value="data-science">Data Science</option>
+                </select>
+              </div>
 
-          {/* ✅ Buttons */}
-          <div className="flex items-center space-x-4 pt-4">
-            <button
-              onClick={handleClose}
-              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700"
-            >
-              {loading ? "Saving..." : "Add Book"}
-            </button>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Condition *
+                </label>
+                <select
+                  id="add-condition"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="">Select condition</option>
+                  <option value="like-new">Like New</option>
+                  <option value="good">Good</option>
+                  <option value="acceptable">Acceptable</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Exchange Type *
+                </label>
+                <select
+                  value={localExchangeType}
+                  onChange={(e) => setLocalExchangeType(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="">Select type</option>
+                  <option value="exchange">Exchange</option>
+                  <option value="donate">Donate</option>
+                  <option value="sell">Sell</option>
+                </select>
+              </div>
+
+              {localExchangeType === "exchange" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Exchange Duration *
+                  </label>
+                  <select
+                    id="add-duration"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="">Select duration</option>
+                    <option value="15">15 Days</option>
+                    <option value="30">30 Days</option>
+                    <option value="60">60 Days</option>
+                  </select>
+                </div>
+              )}
+
+              {localExchangeType === "sell" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Price *
+                  </label>
+                  <input
+                    id="add-price"
+                    type="number"
+                    placeholder="0.00"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea
+                id="add-description"
+                rows="4"
+                placeholder="Describe the book..."
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500"
+              ></textarea>
+            </div>
+
+            {localError && <p className="text-red-600 text-sm">{localError}</p>}
+
+            <div className="flex items-center space-x-4 pt-4">
+              <button
+                onClick={handleClose}
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={localLoading}
+                className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700"
+              >
+                {localLoading ? "Saving..." : "Add Book"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
- 
+  const EditBookModal = () => {
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [isDragging, setIsDragging] = useState(false);
+
+    const handleImageSelect = (e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => setSelectedImage(reader.result);
+        reader.readAsDataURL(file);
+      }
+    };
+
+    const handleDragOver = (e) => {
+      e.preventDefault();
+      setIsDragging(true);
+    };
+
+    const handleDragLeave = () => setIsDragging(false);
+
+    const handleDrop = (e) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const file = e.dataTransfer.files[0];
+      if (file) handleImageSelect({ target: { files: [file] } });
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Edit Book</h2>
+            <button onClick={handleCloseEdit} className="text-gray-500 hover:text-gray-700">
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Book Cover (optional - leave empty to keep current)
+              </label>
+              <input
+                id="edit-cover-image"
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+              />
+              <div
+                onClick={() => document.getElementById('edit-cover-image').click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer ${
+                  isDragging ? "border-green-500 bg-green-50" : "border-gray-300 hover:border-green-500"
+                }`}
+              >
+                {selectedImage ? (
+                  <div className="relative">
+                    <img src={selectedImage} alt="Preview" className="max-h-64 mx-auto rounded-lg" />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedImage(null);
+                      }}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : editingBook?.coverImage ? (
+                  <div className="relative">
+                    <img
+                      src={`data:image/jpeg;base64,${editingBook.coverImage}`}
+                      alt="Current cover"
+                      className="max-h-64 mx-auto rounded-lg"
+                    />
+                    <p className="text-sm text-gray-500 mt-4">Click to change or drag and drop</p>
+                  </div>
+                ) : (
+                  <>
+                    <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-2">Click to change photo or drag and drop</p>
+                    <p className="text-sm text-gray-500">PNG, JPG up to 10MB</p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Book Title *
+                </label>
+                <input
+                  id="edit-title"
+                  type="text"
+                  defaultValue={editingBook?.title}
+                  placeholder="Enter book title"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Author *
+                </label>
+                <input
+                  id="edit-author"
+                  type="text"
+                  defaultValue={editingBook?.author}
+                  placeholder="Enter author name"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Genre *
+                </label>
+                <select
+                  id="edit-genre"
+                  defaultValue={editingBook?.genre}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                >
+                  <option value="">Select genre</option>
+                  <option value="fiction">Fiction</option>
+                  <option value="programming">Programming & Coding</option>
+                  <option value="ai-ml">AI & Machine Learning</option>
+                  <option value="data-science">Data Science</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Condition *
+                </label>
+                <select
+                  id="edit-condition"
+                  defaultValue={editingBook?.condition}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                >
+                  <option value="">Select condition</option>
+                  <option value="like-new">Like New</option>
+                  <option value="good">Good</option>
+                  <option value="acceptable">Acceptable</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Exchange Type *
+                </label>
+                <select
+                  value={exchangeType}
+                  onChange={(e) => setExchangeType(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                >
+                  <option value="">Select type</option>
+                  <option value="exchange">Exchange</option>
+                  <option value="donate">Donate</option>
+                  <option value="sell">Sell</option>
+                </select>
+              </div>
+
+              {exchangeType === "exchange" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Exchange Duration *
+                  </label>
+                  <select
+                    id="edit-duration"
+                    defaultValue={editingBook?.exchangeDuration}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  >
+                    <option value="">Select duration</option>
+                    <option value="15">15 Days</option>
+                    <option value="30">30 Days</option>
+                    <option value="60">60 Days</option>
+                  </select>
+                </div>
+              )}
+
+              {exchangeType === "sell" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Price *
+                  </label>
+                  <input
+                    id="edit-price"
+                    type="number"
+                    defaultValue={editingBook?.price}
+                    placeholder="0.00"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea
+                id="edit-description"
+                rows="4"
+                defaultValue={editingBook?.description}
+                placeholder="Describe the book..."
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              ></textarea>
+            </div>
+
+            {error && <p className="text-red-600 text-sm">{error}</p>}
+
+            <div className="flex items-center space-x-4 pt-4">
+              <button
+                onClick={handleCloseEdit}
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200"
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdate}
+                disabled={loading}
+                className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors duration-200 disabled:opacity-50"
+              >
+                {loading ? "Updating..." : "Update Book"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderDashboard = () => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       </div>
 
-      {/* MY Books - Top horizontal scrollable list */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xl font-bold text-gray-900 flex items-center">
@@ -592,10 +895,10 @@ const handleSubmit = async () => {
           aria-label="My books carousel"
         >
           <div className="flex space-x-4">
-            { myBooks
-              .map((book) => (
+            {myBooks
+              .map((book, INDEX) => (
                 <div
-                  key={book._id}
+                  key={INDEX}
                   className="min-w-[220px] md:min-w-[260px] lg:min-w-[300px] bg-white rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-all duration-200 snap-start flex-shrink-0"
                 >
                   <div className="w-full h-40 md:h-48 overflow-hidden bg-gray-100">
@@ -627,15 +930,24 @@ const handleSubmit = async () => {
                       </div>
 
                       <div className="flex items-center space-x-2">
-                        <button className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded-md">Edit</button>
-                        <button className="px-2 py-1 text-xs border border-gray-300 rounded-md">Share</button>
+                        <button 
+                          className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded-md hover:bg-amber-200 transition-colors duration-200"
+                          onClick={() => handleEditClick(book)}
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          className="px-2 py-1 text-xs border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-200" 
+                          onClick={() => { handleDelete(book) }}
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
                   </div>
                 </div>
-            ))}
+              ))}
 
-            {/* if no books show placeholder card */}
             {myListings.filter(b => myBooks.some(m => m._id === b._id)).length === 0 && (
               <div className="min-w-[220px] md:min-w-[260px] lg:min-w-[300px] bg-gray-50 rounded-lg border border-dashed border-gray-200 flex items-center justify-center p-6 snap-start flex-shrink-0">
                 <div className="text-center">
@@ -648,14 +960,14 @@ const handleSubmit = async () => {
         </div>
       </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 ">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 ">
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-900 flex items-center">
               <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
               Explore
             </h2>
-            <button 
+            <button
               onClick={() => setActiveTab('listings')}
               className="flex items-center text-green-600 hover:text-green-700 font-medium text-sm transition-colors duration-200"
             >
@@ -664,89 +976,87 @@ const handleSubmit = async () => {
           </div>
         </div>
 
-        {/* Make Explore listings use same horizontal carousel/tailwind styling */}
-        <div className="overflow-x-auto  snap-x snap-mandatory scroll-smooth" aria-label="Explore books carousel">
+        <div className="overflow-x-auto snap-x snap-mandatory scroll-smooth" aria-label="Explore books carousel">
           <div className="flex space-x-4 h-full">
             {myListings
-            .filter(b => (logDecode.id != b.owner))
-            .map((book) => (
-              <div 
-                key={book._id}
-                className="min-w-[120px] md:min-w-[260px] lg:min-w-[300px] bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] border border-gray-100 w-65 h-90 flex-shrink-0 snap-start m-5 "
-              >
-                <div className="w-80  h-40 overflow-hidden rounded-t-xl bg-gray-100 relative ">
-                  <img 
-                    src={`data:image/jpeg;base64,${book.coverImage}`} 
-                    alt={book.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-2 right-2">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      book.exchangeType === 'Exchange' ? 'bg-blue-100 text-blue-800' :
-                      book.exchangeType === 'Donate' ? 'bg-green-100 text-green-800' :
-                      'bg-purple-100 text-purple-800'
-                    }`}>
-                      {book.exchangeType}
-                    </span>
+              .filter(b => (logDecode.id != b.owner))
+              .map((book) => (
+                <div
+                  key={book._id}
+                  className="min-w-[120px] md:min-w-[260px] lg:min-w-[300px] bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] border border-gray-100 w-65 h-90 flex-shrink-0 snap-start m-5 "
+                >
+                  <div className="w-80 h-40 overflow-hidden rounded-t-xl bg-gray-100 relative ">
+                    <img
+                      src={`data:image/jpeg;base64,${book.coverImage}`}
+                      alt={book.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2 right-2">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        book.exchangeType === 'Exchange' ? 'bg-blue-100 text-blue-800' :
+                          book.exchangeType === 'Donate' ? 'bg-green-100 text-green-800' :
+                            'bg-purple-100 text-purple-800'
+                      }`}>
+                        {book.exchangeType}
+                      </span>
+                    </div>
+                    <div className="absolute top-2 left-2">
+                      <button className="p-1 bg-white bg-opacity-80 rounded-full hover:bg-opacity-100 transition-all duration-200">
+                        <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="absolute top-2 left-2">
-                    <button className="p-1 bg-white bg-opacity-80 rounded-full hover:bg-opacity-100 transition-all duration-200">
-                      <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
+
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg text-gray-900 mb-1 line-clamp-2">{book.title}</h3>
+                    <p className="text-gray-600 text-sm mb-2">by {book.author}</p>
+
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="flex items-center">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span className="text-sm font-medium text-gray-700 ml-1">{book.rating}</span>
+                      </div>
+                      <span className="text-gray-400">•</span>
+                      <span className="text-sm text-gray-600">{book.reviews} reviews</span>
+                    </div>
+
+                    <div className="flex items-center text-sm text-gray-600 mb-3">
+                      <MapPin className="h-4 w-4 mr-1" />
+                      <span>{book.location}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                      <div className="flex items-center space-x-2">
+                        <div className="h-6 w-6 bg-green-100 rounded-full flex items-center justify-center">
+                          <User className="h-3 w-3 text-green-600" />
+                        </div>
+                        <span className="text-sm text-gray-700">{book.title}</span>
+                        <div className="flex items-center">
+                          <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                          <span className="text-xs text-gray-600 ml-1">{book.ownerRating}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-1">
+                        <button className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200">
+                          <Share2 className="h-4 w-4" />
+                        </button>
+                        <button className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200">
+                          <MessageCircle className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <button className="w-full mt-3 bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors duration-200">
+                      Request Book
                     </button>
                   </div>
                 </div>
-                
-                <div className="p-4">
-                  <h3 className="font-bold text-lg text-gray-900 mb-1 line-clamp-2">{book.title}</h3>
-                  <p className="text-gray-600 text-sm mb-2">by {book.author}</p>
-                  
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="text-sm font-medium text-gray-700 ml-1">{book.rating}</span>
-                    </div>
-                    <span className="text-gray-400">•</span>
-                    <span className="text-sm text-gray-600">{book.reviews} reviews</span>
-                  </div>
-                  
-                  <div className="flex items-center text-sm text-gray-600 mb-3">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    <span>{book.location}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                    <div className="flex items-center space-x-2">
-                      <div className="h-6 w-6 bg-green-100 rounded-full flex items-center justify-center">
-                        <User className="h-3 w-3 text-green-600" />
-                      </div>
-                      <span className="text-sm text-gray-700">{book.title}</span>
-                      <div className="flex items-center">
-                        <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                        <span className="text-xs text-gray-600 ml-1">{book.ownerRating}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-1">
-                      <button className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200">
-                        <Share2 className="h-4 w-4" />
-                      </button>
-                      <button className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200">
-                        <MessageCircle className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <button className="w-full mt-3 bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors duration-200">
-                    Request Book
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       </div>
 
-      {/* Recent Requests - Below the horizontal list */}
       <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="p-6 border-b border-gray-100 flex items-center justify-between">
@@ -798,8 +1108,6 @@ const handleSubmit = async () => {
         </div>
       </div>
 
-    
-
       <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-xl p-6 text-white">
         <div className="flex flex-col md:flex-row items-center justify-between">
           <div className="mb-4 md:mb-0">
@@ -819,116 +1127,113 @@ const handleSubmit = async () => {
   );
 
   const renderListings = () => (
-   <div className="space-y-6">
-    {/* Filter Bar */}
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-       <div className="flex items-center space-x-4">
-        <Filter className="h-5 w-5 text-gray-400" />
-        <select className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
-          <option>All Status</option>
-          <option>Active</option>
-          <option>Pending</option>
-          <option>Completed</option>
-        </select>
-        <select className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
-          <option>All Types</option>
-          <option>Exchange</option>
-          <option>Donate</option>
-          <option>Sell</option>
-        </select>
-       </div>
-       
-       <button 
-        onClick={() => setShowAddBookModal(true)}
-        className="bg-amber-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-amber-700 transition-colors duration-200 flex items-center justify-center"
-       >
-        <Plus className="h-4 w-4 mr-2" />
-        Add Book
-       </button>
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+          <div className="flex items-center space-x-4">
+            <Filter className="h-5 w-5 text-gray-400" />
+            <select className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
+              <option>All Status</option>
+              <option>Active</option>
+              <option>Pending</option>
+              <option>Completed</option>
+            </select>
+            <select className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
+              <option>All Types</option>
+              <option>Exchange</option>
+              <option>Donate</option>
+              <option>Sell</option>
+            </select>
+          </div>
+
+          <button
+            onClick={() => setShowAddBookModal(true)}
+            className="bg-amber-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-amber-700 transition-colors duration-200 flex items-center justify-center"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Book
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {myListings
+          .filter(b => (logDecode.id != b.owner))
+          .map((book) => (
+            <div
+              key={book._id}
+              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] border border-gray-100 w-full max-w-sm mx-auto"
+            >
+              <div className="w-full h-56 overflow-hidden rounded-t-xl bg-gray-100">
+                <img
+                  src={`data:image/jpeg;base64,${book.coverImage}`}
+                  alt={book.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-2 right-2">
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    book.exchangeType === 'Exchange' ? 'bg-blue-100 text-blue-800' :
+                      book.exchangeType === 'Donate' ? 'bg-green-100 text-green-800' :
+                        'bg-purple-100 text-purple-800'
+                  }`}>
+                    {book.exchangeType}
+                  </span>
+                </div>
+                <div className="absolute top-2 left-2">
+                  <button className="p-1 bg-white bg-opacity-80 rounded-full hover:bg-opacity-100 transition-all duration-200">
+                    <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-4">
+                <h3 className="font-bold text-lg text-gray-900 mb-1 line-clamp-2">{book.title}</h3>
+                <p className="text-gray-600 text-sm mb-2">by {book.author}</p>
+
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="flex items-center">
+                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                    <span className="text-sm font-medium text-gray-700 ml-1">{book.rating}</span>
+                  </div>
+                  <span className="text-gray-400">•</span>
+                  <span className="text-sm text-gray-600">{book.reviews} reviews</span>
+                </div>
+
+                <div className="flex items-center text-sm text-gray-600 mb-3">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  <span>{book.location}</span>
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                  <div className="flex items-center space-x-2">
+                    <div className="h-6 w-6 bg-green-100 rounded-full flex items-center justify-center">
+                      <User className="h-3 w-3 text-green-600" />
+                    </div>
+                    <span className="text-sm text-gray-700">{book.title}</span>
+                    <div className="flex items-center">
+                      <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                      <span className="text-xs text-gray-600 ml-1">{book.ownerRating}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-1">
+                    <button className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200">
+                      <Share2 className="h-4 w-4" />
+                    </button>
+                    <button className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200">
+                      <MessageCircle className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <button className="w-full mt-3 bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors duration-200">
+                  Request Book
+                </button>
+              </div>
+            </div>
+          ))}
       </div>
     </div>
-
-    {/* Listings Grid */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {myListings
-      .filter(b => (logDecode.id != b.owner))
-      .map((book) => (
-        <div 
-         key={book._id}
-         className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] border border-gray-100 w-full max-w-sm mx-auto"
-        >
-            {/* fixed image area so every card has same image width & height */}
-            <div className="w-full h-56 overflow-hidden rounded-t-xl bg-gray-100">
-             <img 
-              src={`data:image/jpeg;base64,${book.coverImage}`} 
-              alt={book.title}
-              className="w-full h-full object-cover"
-             />
-             <div className="absolute top-2 right-2">
-              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                book.exchangeType === 'Exchange' ? 'bg-blue-100 text-blue-800' :
-                book.exchangeType === 'Donate' ? 'bg-green-100 text-green-800' :
-                'bg-purple-100 text-purple-800'
-              }`}>
-                {book.exchangeType}
-              </span>
-             </div>
-             <div className="absolute top-2 left-2">
-              <button className="p-1 bg-white bg-opacity-80 rounded-full hover:bg-opacity-100 transition-all duration-200">
-                <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
-              </button>
-             </div>
-            </div>
-            
-            <div className="p-4">
-             <h3 className="font-bold text-lg text-gray-900 mb-1 line-clamp-2">{book.title}</h3>
-             <p className="text-gray-600 text-sm mb-2">by {book.author}</p>
-             
-             <div className="flex items-center space-x-2 mb-2">
-              <div className="flex items-center">
-                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                <span className="text-sm font-medium text-gray-700 ml-1">{book.rating}</span>
-              </div>
-              <span className="text-gray-400">•</span>
-              <span className="text-sm text-gray-600">{book.reviews} reviews</span>
-             </div>
-             
-             <div className="flex items-center text-sm text-gray-600 mb-3">
-              <MapPin className="h-4 w-4 mr-1" />
-              <span>{book.location}</span>
-             </div>
-             
-             <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-              <div className="flex items-center space-x-2">
-                <div className="h-6 w-6 bg-green-100 rounded-full flex items-center justify-center">
-                 <User className="h-3 w-3 text-green-600" />
-                </div>
-                <span className="text-sm text-gray-700">{book.title}</span>
-                <div className="flex items-center">
-                 <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                 <span className="text-xs text-gray-600 ml-1">{book.ownerRating}</span>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-1">
-                <button className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200">
-                 <Share2 className="h-4 w-4" />
-                </button>
-                <button className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200">
-                 <MessageCircle className="h-4 w-4" />
-                </button>
-              </div>
-             </div>
-             
-             <button className="w-full mt-3 bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors duration-200">
-              Request Book
-             </button>
-            </div>
-          </div>
-      ))}
-    </div>
-   </div>
   );
 
   const renderRequests = () => (
@@ -940,7 +1245,7 @@ const handleSubmit = async () => {
             <span className="text-sm text-gray-500">{recentRequests.length} pending requests</span>
           </div>
         </div>
-        
+
         <div className="divide-y divide-gray-200">
           {recentRequests.map((request) => (
             <div key={request.id} className="p-6 hover:bg-gray-50 transition-colors duration-200">
@@ -961,15 +1266,15 @@ const handleSubmit = async () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="bg-gray-50 rounded-lg p-3 mb-3">
                     <p className="text-sm font-medium text-gray-700 mb-1">Requested Book:</p>
                     <p className="text-sm text-gray-900 font-bold">{request.bookTitle}</p>
                   </div>
-                  
+
                   <p className="text-gray-600 text-sm">{request.message}</p>
                 </div>
-                
+
                 <div className="flex md:flex-col items-center md:items-end space-x-2 md:space-x-0 md:space-y-2">
                   {request.status === 'pending' ? (
                     <>
@@ -1015,11 +1320,11 @@ const handleSubmit = async () => {
     </div>
   );
 
-const [earnings, setEarnings] = useState([]);
+  const [earnings, setEarnings] = useState([]);
   const renderEarnings = () => (
-   
+
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">    
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
@@ -1030,7 +1335,7 @@ const [earnings, setEarnings] = useState([]);
             <span>Export</span>
           </button>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -1093,24 +1398,24 @@ const [earnings, setEarnings] = useState([]);
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <Sidebar />
-      
+
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         ></div>
       )}
-      
+
       <div className="flex-1 flex flex-col min-w-0">
         <Header />
-        
+
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
           {renderContent()}
         </main>
       </div>
-      
+
       {showAddBookModal && <AddBookModal />}
+      {showEditModal && <EditBookModal />}
     </div>
   );
 }
-                  
