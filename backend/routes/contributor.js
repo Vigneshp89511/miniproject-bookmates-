@@ -109,4 +109,47 @@ router.delete(
   }
 );
 
+router.put(
+  '/contributor/books/:id',
+  authRequired,
+  requireAccountType(['contributor']),
+  upload.single('coverImage'), // 👈 handles optional new image
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { title, author, genre, description, condition, exchangeType, exchangeDuration, price } = req.body;
+
+      // Find book and verify ownership
+      const book = await Book.findOne({ _id: id, owner: req.user.id });
+      if (!book) {
+        return res.status(404).json({ message: 'Book not found or unauthorized' });
+      }
+
+      // Update fields
+      if (title) book.title = title;
+      if (author) book.author = author;
+      if (genre) book.genre = genre;
+      if (description) book.description = description;
+      if (condition) book.condition = condition;
+      if (exchangeType) book.exchangeType = exchangeType;
+      if (exchangeDuration) book.exchangeDuration = exchangeDuration;
+      if (price) book.price = price;
+      
+      // Update image if new one provided
+      if (req.file?.path) {
+        book.coverImage = req.file.path; // Cloudinary URL
+      }
+
+      await book.save();
+      return res.json(book);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: err.message || 'Failed to update book' });
+    }
+  }
+);
+
+/* ----------------------- DELETE: Remove My Book (Enhanced) ----------------------- */
+
+
 export default router;
