@@ -38,48 +38,58 @@ export default function BookExchangeAuth() {
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
   // Handle Login
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+   const handleLogin = async (e) => {
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-    try {
-      const { email, password } = form;
-      
-      if (!email || !password) {
-        setError("Email and password are required");
-        setLoading(false);
-        return;
-      }
+  try {
+    const { email, password } = form;
 
-      const resp = await login({ email, password });
-      
-      // Check if user needs to verify email
-      if (resp.requiresVerification) {
-        setPendingEmail(email);
-        setIsOtpSent(true);
-        setError("Please verify your email first. Check your inbox for OTP.");
-        setLoading(false);
-        return;
-      }
-
-      setToken(resp.token);
-      setUser(resp.user);
-      // Redirect or update app state here
-      window.location.href = "/book-contributor";
-    } catch (err) {
-      const errorMsg = err.response?.data?.message || err.message || "Login failed";
-      setError(errorMsg);
-      
-      // If error indicates verification needed, show OTP input
-      if (err.response?.data?.requiresVerification) {
-        setPendingEmail(err.response.data.email);
-        setIsOtpSent(true);
-      }
-    } finally {
+    if (!email || !password) {
+      setError("Email and password are required");
       setLoading(false);
+      return;
     }
-  };
+
+    // Call the login API
+    const resp = await login({ email, password });
+
+    // Check if verification is required
+    if (resp.requiresVerification) {
+      setPendingEmail(email);
+      setIsOtpSent(true);
+      setError("Please verify your email first. Check your inbox for OTP.");
+      setLoading(false);
+      return;
+    }
+
+    // ✅ Store token and user in localStorage so they persist on Render
+    localStorage.setItem("token", resp.token);
+    localStorage.setItem("user", JSON.stringify(resp.user));
+
+    // ✅ Configure axios for all future requests
+    axios.defaults.headers.common["Authorization"] = `Bearer ${resp.token}`;
+
+    // ✅ Optional: if you use cookies or cross-domain requests
+    axios.defaults.withCredentials = true;
+
+    // ✅ Redirect to contributor page after successful login
+    window.location.href = "/book-contributor";
+  } catch (err) {
+    const errorMsg =
+      err.response?.data?.message || err.message || "Login failed";
+    setError(errorMsg);
+
+    // If verification is required but not completed yet
+    if (err.response?.data?.requiresVerification) {
+      setPendingEmail(err.response.data.email);
+      setIsOtpSent(true);
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Handle Signup
   const handleSignup = async (e) => {
