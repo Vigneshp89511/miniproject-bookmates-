@@ -93,4 +93,95 @@ upbk.get('/contributer/books',async (req,res)=>{
     }
 })
 
+upbk.delete(
+  '/contributer/books/:id',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      console.log(id);
+      // Find and delete only if user owns the book
+      const book = await UpBooks.findOneAndDelete({ _id: id });
+      console.log('Book deleted:', book);
+      if (!book) {
+        return res.status(404).json({ message: 'Book not found or unauthorized' });
+      }
+      console.log('Book deleted:');
+      return res.json({ success: true, message: 'Book deleted successfully' });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: err.message || 'Failed to delete book' });
+    }
+  }
+);
+
+upbk.put(
+  "/contributer/books/:id",
+  authMiddleware,
+  upload.single("coverImage"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Find the book first
+      const book = await UpBooks.findById(id);
+      
+      if (!book) {
+        return res.status(404).json({ message: "Book not found" });
+      }
+      
+      // Check ownership
+      if (book.owner.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: "Unauthorized to edit this book" });
+      }
+      
+      // Prepare update data
+      const {
+        title,
+        author,
+        genre,
+        condition,
+        exchangeType,
+        exchangeDuration,
+        price,
+        description,
+        termsAccepted,
+      } = req.body;
+      
+      // Build update object
+      const updateData = {
+        title,
+        author,
+        genre,
+        condition,
+        exchangeType,
+        exchangeDuration: exchangeDuration || null,
+        price: price || null,
+        description: description || "",
+        termsAccepted,
+      };
+      
+      // If new cover image is uploaded, add it
+      if (req.file) {
+        updateData.coverImage = req.file.buffer.toString("base64");
+      }
+      
+      // Update the book
+      const updatedBook = await UpBooks.findByIdAndUpdate(
+        id,
+        updateData,
+        { new: true, runValidators: true }
+      );
+      
+      console.log('Book updated successfully:', updatedBook.title);
+      res.status(200).json(updatedBook);
+    } catch (error) {
+      console.error("Error updating book:", error);
+      res.status(500).json({ message: "Server error while updating book." });
+    }
+  }
+);
+
+
 export default upbk;
+
