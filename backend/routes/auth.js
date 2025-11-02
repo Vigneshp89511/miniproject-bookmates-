@@ -280,50 +280,70 @@ router.post('/resend-otp', async (req, res) => {
 });
 
 // POST /login
-router.post('/login', async (req, res) => {
+ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
+    // 🔒 Validate input
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password required' });
     }
 
-    const user = await User.findOne({ email });
-    
+    // 🔍 Find user
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
+      console.log(`❌ Login failed: No user found for ${email}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    // 🛑 Check if verified
     if (!user.isVerified) {
-      return res.status(403).json({ 
+      console.log(`⚠️ Unverified user tried to login: ${email}`);
+      return res.status(403).json({
         message: 'Please verify your email first',
         requiresVerification: true,
-        email: user.email
+        email: user.email,
       });
     }
 
+    // 🔐 Compare password
     const isMatch = await user.comparePassword(password);
-    
     if (!isMatch) {
+      console.log(`❌ Incorrect password for ${email}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    // ✅ Generate JWT token
     const token = signToken(user);
-    
-    return res.json({
+
+    // ✅ Optional: Set token in HTTP-only cookie (safer alternative)
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // true on Render
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    console.log(`✅ User logged in: ${email}`);
+
+    // ✅ Respond with user data + token (frontend stores it in localStorage)
+    return res.status(200).json({
+      success: true,
+      message: 'Login successful',
       token,
-      user: { 
-        id: user._id, 
-        name: user.name, 
-        email: user.email, 
-        accountType: user.accountType, 
-        favoriteGenre: user.favoriteGenre 
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        accountType: user.accountType,
+        favoriteGenre: user.favoriteGenre,
       },
     });
   } catch (err) {
-    console.error('Login error:', err);
+    console.error('💥 Login error:', err);
     return res.status(500).json({ message: err.message || 'Server error' });
   }
 });
+
 
 export default router;
