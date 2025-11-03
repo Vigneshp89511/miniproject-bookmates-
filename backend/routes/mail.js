@@ -7,7 +7,7 @@ let transporter;
 
 console.log(process.env.BUILD);
 
-if (process.env.BUILD !== "development") {
+if (process.env.BUILD === "development") {
   transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
