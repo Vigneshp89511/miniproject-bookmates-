@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer'
 import dotenv from "dotenv"
 dotenv.config();
 const BREVO_SMTP_KEY = process.env.BREVO_SMTP_KEY ;
-const RPORT = process.env.BUILD === "development" ? 587 : 443;
+const RPORT = 2525;
 let transporter;
 
 console.log(process.env.BUILD);
@@ -45,7 +45,7 @@ else {
     },
   });
 
-  transporter.verify((error, success) => {
+  transporter.verify((error) => {
     // This verification will now test the connection to smtp-relay.brevo.com
     if (error) {
       console.error("Brevo SMTP Verification Error:", error.message);
