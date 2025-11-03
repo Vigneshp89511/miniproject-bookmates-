@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer'
 import dotenv from "dotenv"
 dotenv.config();
 const BREVO_SMTP_KEY = process.env.BREVO_SMTP_KEY ;
-const RPORT = 2525;
+const RPORT = 587;
 let transporter;
 
 console.log(process.env.BUILD);

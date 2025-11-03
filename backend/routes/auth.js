@@ -15,6 +15,10 @@ function signToken(user) {
   return jwt.sign(payload, secret, { expiresIn: '7d' });
 }
 
+const senderEmail = process.env.NODE_ENV === "development" 
+  ? '"BookMates" <database189511@gmail.com>'  // Gmail for dev
+  : '"BookMates" <9aa541001@smtp-brevo.com>'; 
+
 // POST /signup
 router.post('/signup', async (req, res) => {
   try {
@@ -38,7 +42,7 @@ router.post('/signup', async (req, res) => {
     // Send OTP email
     try {
       await transporter.sendMail({
-        from: '"BookMates" <database189511@gmail.com>',
+        from: senderEmail,
         to: email,
         subject: "Your BookMates OTP Code",
         html: `
@@ -250,7 +254,7 @@ router.post('/resend-otp', async (req, res) => {
     // Send OTP email
     try {
       await transporter.sendMail({
-        from: '"BookMates" <database189511@gmail.com>',
+        from: senderEmail,
         to: email,
         subject: "Your New BookMates OTP Code",
         text: `Hello ${user.name},\n\nYour new BookMates OTP is: ${otp}\n\nThis code will expire in 5 minutes.\n\n- Vignesh P and Shakthi Vel, Founders of BookMates`
