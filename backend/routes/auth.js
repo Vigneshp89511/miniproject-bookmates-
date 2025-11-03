@@ -2,6 +2,8 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import transporter from './mail.js';
+import dotenv  from 'dotenv';
+dotenv.config();
 
 const router = express.Router();
 
@@ -15,7 +17,7 @@ function signToken(user) {
   return jwt.sign(payload, secret, { expiresIn: '7d' });
 }
 
-const senderEmail = process.env.NODE_ENV === "development" 
+const senderEmail = process.env.BUILD === "development" 
   ? '"BookMates" <database189511@gmail.com>'  // Gmail for dev
   : '"BookMates" <9aa541001@smtp-brevo.com>'; 
 

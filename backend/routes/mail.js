@@ -31,7 +31,7 @@ else {
     host: "smtp-relay.brevo.com",
     
     // 2. Use the standard port for TLS (STARTTLS)
-    port: {RPORT},
+    port: RPORT,
     
     // 3. 'secure' must be false for port 587
     secure: false, 
