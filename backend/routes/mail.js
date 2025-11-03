@@ -2,12 +2,12 @@ import nodemailer from 'nodemailer'
 import dotenv from "dotenv"
 dotenv.config();
 const BREVO_SMTP_KEY = process.env.BREVO_SMTP_KEY ;
-
+const RPORT = process.env.BUILD === "development" ? 587 : 443;
 let transporter;
 
 console.log(process.env.BUILD);
 
-if (process.env.BUILD === "development") {
+if (process.env.BUILD !== "development") {
   transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
@@ -31,7 +31,7 @@ else {
     host: "smtp-relay.brevo.com",
     
     // 2. Use the standard port for TLS (STARTTLS)
-    port: 587,
+    port: {RPORT},
     
     // 3. 'secure' must be false for port 587
     secure: false, 
