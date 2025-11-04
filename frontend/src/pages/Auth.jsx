@@ -1,5 +1,6 @@
  import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { signup, login, setToken, setUser } from "../lib/api";
 import {
   BookOpen,
@@ -33,12 +34,15 @@ export default function BookExchangeAuth() {
   const [error, setError] = useState("");
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [pendingEmail, setPendingEmail] = useState("");
+  // ✅ Restore login state from localStorage when page reloads
+ 
+  const navigate = useNavigate();
 
   const updateField = (key) => (e) => 
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
   // Handle Login
-   const handleLogin = async (e) => {
+ const handleLogin = async (e) => {
   e.preventDefault();
   setError("");
   setLoading(true);
@@ -74,8 +78,7 @@ export default function BookExchangeAuth() {
     // ✅ Optional: if you use cookies or cross-domain requests
     axios.defaults.withCredentials = true;
 
-    // ✅ Redirect to contributor page after successful login
-    window.location.href = "/book-contributor";
+    navigate("/book-contributor");
   } catch (err) {
     const errorMsg =
       err.response?.data?.message || err.message || "Login failed";
@@ -90,7 +93,7 @@ export default function BookExchangeAuth() {
     setLoading(false);
   }
 };
-
+ 
   // Handle Signup
   const handleSignup = async (e) => {
     e.preventDefault();
