@@ -35,10 +35,11 @@ export default function BookContributorDashboard() {
 
   useEffect(() => {
     const token = getToken();
-    // if (!token) {
-    //   window.location.href = '/auth';
-    //   return;
-    // }
+    console.log(token);
+    if (!token) {
+       window.location.href = '/auth';
+       return;
+   }
     fetchContributorBooks()
     setUser(getUser());
     (async () => {
