@@ -1,11 +1,16 @@
 import nodemailer from 'nodemailer'
 import dotenv from "dotenv"
+import SibApiV3Sdk from "sib-api-v3-sdk";
 dotenv.config();
 const BREVO_SMTP_KEY = process.env.BREVO_SMTP_KEY ;
 const RPORT = 587;
 let transporter;
 
 console.log(process.env.BUILD);
+
+const client = SibApiV3Sdk.ApiClient.instance;
+client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
+const brevo = new SibApiV3Sdk.TransactionalEmailsApi();
 
 if (process.env.BUILD === "development") {
   transporter = nodemailer.createTransport({

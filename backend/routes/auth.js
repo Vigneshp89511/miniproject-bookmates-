@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import transporter from './mail.js';
 import dotenv  from 'dotenv';
+import {sendOtpEmail} from './Brove.js'
 dotenv.config();
 
 const router = express.Router();
@@ -42,7 +43,8 @@ router.post('/signup', async (req, res) => {
     console.log('Generated OTP for', email, ':', otp);
 
     // Send OTP email
-    try {
+   if (process.env.BUILD === "development")  
+   { try {
       await transporter.sendMail({
         from: senderEmail,
         to: email,
@@ -124,7 +126,15 @@ router.post('/signup', async (req, res) => {
         message: 'Failed to send OTP email. Please try again.' 
       });
     }
-
+  }
+  else{
+     try {
+    await sendOtpEmail({ email, name, otp });
+    res.json({ message: "OTP email sent successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+  }
     // Store OTP with expiration time (5 minutes)
     const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
     
@@ -153,6 +163,7 @@ router.post('/signup', async (req, res) => {
     const msg = err?.errors?.accountType?.message || err?.message || 'Server error';
     return res.status(500).json({ message: msg });
   }
+ 
 });
 
 // POST /verify-otp
