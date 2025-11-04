@@ -5,7 +5,7 @@ const API_BASE_URL =
     ? "http://localhost:4000/api"
     : "https://bookmates-31ak.onrender.com/api";
     
-const TOKEN_STORAGE_KEY = 'bookmates_token';
+const TOKEN_STORAGE_KEY = 'token';
 const USER_STORAGE_KEY = 'bookmates_user';
 
 export function setToken(token) {
