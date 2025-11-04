@@ -325,7 +325,7 @@ router.post('/resend-otp', async (req, res) => {
     // ✅ Optional: Set token in HTTP-only cookie (safer alternative)
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.BUILD === 'build', // true on Render
+      secure: process.env.BUILD === 'production', // true on Render
       sameSite: process.env.BUILD === 'production' ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
